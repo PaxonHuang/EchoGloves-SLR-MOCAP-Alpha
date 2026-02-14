@@ -127,7 +127,7 @@ from sklearn.ensemble import RandomForestClassifier
 - Use `#pragma once` for include guards
 - Namespaced under project-specific hierarchy
 - Public methods documented with `/** */` comments
-- Predictable array sizes (e.g., `float x[11]` for 11 features)
+- Predictable array sizes (e.g., `float x[11]` for 11 features)  
 
 ## Error Handling
 
