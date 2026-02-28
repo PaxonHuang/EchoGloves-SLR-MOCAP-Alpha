@@ -58,6 +58,5 @@
   "C_Cpp_Runner.msvcSecureNoWarnings": false,
   "Codegeex.RepoIndex": true,
   "python-envs.defaultEnvManager": "ms-python.python:conda",
-  "python-envs.defaultPackageManager": "ms-python.python:conda",
-  "python-envs.pythonProjects": []
+  "python-envs.defaultPackageManager": "ms-python.python:conda"
 }
