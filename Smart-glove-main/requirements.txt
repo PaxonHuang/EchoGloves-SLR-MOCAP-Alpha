@@ -1,0 +1,86 @@
+# Smart Glove ASL Translation - Python Dependencies
+# Python Version: 3.8, 3.9, or 3.10 (Recommended: 3.9)
+# Last Updated: 2026-02-28
+
+# ============================================================================
+# Core Machine Learning Dependencies (Required)
+# ============================================================================
+
+# Numerical computation - Core dependency for all ML operations
+numpy==1.21.6
+
+# Data manipulation and analysis - For CSV loading and DataFrame operations
+pandas==1.3.5
+
+# Machine learning framework - Random Forest classifier
+scikit-learn==1.0.2
+
+# Model serialization - For saving/loading trained models
+joblib==1.1.0
+
+# ============================================================================
+# Visualization Dependencies (Required for training notebooks)
+# ============================================================================
+
+# Plotting library - For confusion matrices and tree visualization
+matplotlib==3.5.3
+
+# Statistical visualization - For correlation heatmaps and distribution plots
+seaborn==0.11.2
+
+# ============================================================================
+# Deployment Dependencies (Required for real-time inference)
+# ============================================================================
+
+# Text-to-speech - For speaking predicted ASL gestures
+pyttsx3==2.90
+
+# ============================================================================
+# Optional Deep Learning Dependencies (For Conv1D_BiLSTM_Training.ipynb)
+# ============================================================================
+# Uncomment the following if using deep learning notebooks:
+
+# Deep learning framework - For neural network training
+# Note: TensorFlow 2.10.0 is the last version with native Windows Python 3.9 support
+# tensorflow==2.10.0
+
+# Scientific computing - For signal processing and filters
+# scipy==1.9.3
+
+# ============================================================================
+# Optional Advanced ML Dependencies (For comparison notebooks)
+# ============================================================================
+# Uncomment the following if using advanced ML notebooks:
+
+# Gradient boosting frameworks
+# xgboost==1.6.2
+# lightgbm==3.3.2
+
+# Hyperparameter optimization
+# optuna==3.0.0
+# scikit-optimize==0.9.0
+
+# Genetic algorithms
+# deap==1.3.3
+
+# ============================================================================
+# Development Dependencies (Optional)
+# ============================================================================
+# Uncomment the following for development:
+
+# Jupyter notebook support
+# notebook==6.4.12
+# ipython==8.5.0
+
+# Progress bars for training
+# tqdm==4.64.1
+
+# ============================================================================
+# Version Compatibility Notes:
+# ============================================================================
+# 1. Python Version: Use 3.9 for best compatibility with all packages
+# 2. TensorFlow: 2.10.0 is the last version supporting Python 3.9 natively on Windows
+# 3. scikit-learn 1.0.2 requires Python >= 3.7
+# 4. numpy 1.21.6 is compatible with TensorFlow 2.10.0
+# 5. For ESP32 deployment, only core ML dependencies are required
+# ============================================================================
