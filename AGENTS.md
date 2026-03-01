@@ -191,5 +191,28 @@ from sklearn.ensemble import RandomForestClassifier
 ## Dependencies
 
 **Python**: pandas, numpy, scikit-learn, matplotlib, seaborn, joblib
+
 **Arduino**: Adafruit MPU6050 library, FlexLibrary, Wire
+
 **Hardware**: ESP32 dev board, MPU6050, 5x flex sensors
+
+## Additional ML Notebooks
+
+| Notebook | Purpose |
+|----------|---------|
+| `RF.ipynb` | Main RF training (Chinese comments) |
+| `Traditional_ML_Comparison.ipynb` | SVM, KNN, XGBoost, LightGBM, AdaBoost comparison |
+| `Conv1D_BiLSTM_Training.ipynb` | Deep learning with TFLite deployment |
+| `Ensemble_Learning.ipynb` | Ensemble methods |
+| `Hyperparameter_Optimization.ipynb` | Hyperparameter tuning |
+
+## Config Files
+
+| File | Purpose |
+|------|---------|
+| `platformio.ini` | PlatformIO ESP32 build config |
+| `.mcp/mcp.json` | MCP tool integrations |
+
+## Branch
+
+- **Active branch**: `EchoGlove-IDF`
