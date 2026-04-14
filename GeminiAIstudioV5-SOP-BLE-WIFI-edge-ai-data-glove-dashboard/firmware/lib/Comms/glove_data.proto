@@ -1,0 +1,9 @@
+syntax = "proto3";
+
+message GloveData {
+    uint32 timestamp = 1;
+    repeated float hall_features = 2; // 15 values
+    repeated float imu_features = 3;  // 6 values (3 euler + 3 gyro)
+    repeated float flex_features = 4; // 5 values
+    uint32 l1_gesture_id = 5;
+}
