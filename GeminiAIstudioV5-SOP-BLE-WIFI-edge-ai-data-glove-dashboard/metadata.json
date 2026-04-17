@@ -1,5 +1,0 @@
-{
-  "name": "Edge-AI Data Glove Dashboard",
-  "description": "A comprehensive system for sign language translation and 3D hand animation using ESP32-S3 and Dual-Tier AI inference.",
-  "requestFramePermissions": []
-}
