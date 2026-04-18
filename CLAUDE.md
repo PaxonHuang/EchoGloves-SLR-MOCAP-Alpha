@@ -2,145 +2,196 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+---
+
 ## Project Overview
 
-This repository contains an **Edge-AI-Powered Data Glove** system for real-time sign language translation and 3D hand rendering. The project implements a dual-tier inference architecture:
+**Edge-AI Data Glove**: Dual-tier inference system for real-time sign language translation and 3D hand animation. L1 (edge/on-device ESP32-S3) handles fast simple gesture recognition; L2 (PC) handles complex dynamic sign language recognition with ST-GCN.
 
-- **L1 (Edge)**: ESP32-S3 performs 100Hz sampling, Kalman filtering, and lightweight 1D-CNN gesture recognition (~3ms latency)
-- **L2 (Upper Host)**: PC performs ST-GCN complex sign language recognition, NLP grammar correction, and ms-MANO 3D rendering
+**Key Architecture Decisions**:
+- **TinyML Dual-Path**: Edge Impulse (fast MVP) OR PyTorch→TFLite INT8 (full reproduction)
+- **Self-built ST-GCN**: Not using OpenHands (unmaintained); building from MS-GCN3 paper
+- **Phased Communication**: BLE only for Phase 1-3; BLE + WiFi UDP for Phase 4+
+- **Hardware**: ESP32-S3-DevKitC-1 N16R8 (16MB PSRAM), TMAG5273 Hall sensors, BNO085 IMU, TCA9548A I2C mux
+
+---
 
 ## Build Commands
 
-### Firmware (ESP32-S3)
+### Firmware (PlatformIO)
 ```bash
 # Build firmware
-cd GeminiAIstudioV5-SOP-BLE-WIFI-edge-ai-data-glove-dashboard/firmware
 pio run
 
-# Upload to ESP32-S3
+# Build and upload to device
 pio run -t upload
 
-# Monitor serial output
+# Monitor serial output (115200 baud)
 pio device monitor -b 115200
 
-# Build and upload with monitor
-pio run -t upload && pio device monitor
+# Clean build
+pio run -t clean
 ```
 
-### Web Dashboard (Gemini AI Studio App)
+### Frontend (React/Vite)
 ```bash
-cd GeminiAIstudioV5-SOP-BLE-WIFI-edge-ai-data-glove-dashboard
+cd source/frontend
 npm install
-npm run dev    # Development server on port 3000
-npm run build  # Production build
+npm run dev      # Development server on port 3000
+npm run build    # Production build
+npm run lint     # TypeScript check
 ```
 
-### Python Scripts (AI Pipeline)
+### Python Scripts (L2 Inference)
 ```bash
-cd GeminiAIstudioV5-SOP-BLE-WIFI-edge-ai-data-glove-dashboard/scripts
-python l1_edge_model.py    # Train L1 edge model
-python data_collector.py   # Collect training data
-python l2_inference.py     # L2 inference pipeline
+cd source/scripts
+python l2_inference.py
+python l1_edge_model.py
 ```
 
-## Key Architecture
+---
 
-### Communication Stack (Dual-Mode)
-The system uses three communication channels for different latency/reliability requirements:
+## Critical Bugs Fixed
 
-1. **WiFi UDP**: 100Hz real-time pose broadcast (lowest latency, packet loss acceptable)
-2. **WiFi WebSocket (TCP)**: Recognition results and dynamic features (reliable transmission)
-3. **BLE 5.0**: Device provisioning, 20Hz backup link, mobile app direct connection
+### xTaskCreatePinnedToCore Parameter Order (main.cpp L190-192)
+**WRONG**: `xTaskCreatePinnedToCore(TaskSensorReadHandle, ...)`
+**CORRECT**: `xTaskCreatePinnedToCore(Task_SensorRead, ...)` — first param is function pointer, not handle variable.
 
-### FreeRTOS Task Structure (Firmware)
+This bug causes Cache Access Exception crash because RTOS executes an integer address as code.
+
+---
+
+## FreeRTOS Dual-Core Architecture
+
+- **Core 1**: `Task_SensorRead` — 100Hz sensor sampling (TMAG5273 + BNO085), Kalman filtering
+- **Core 0**: `Task_Inference` — Edge Impulse inference + `Task_Comms` — WiFi/BLE transmission
+
+Task priorities: SensorRead (3) > Inference (2) > Comms (1)
+
+---
+
+## Edge Impulse Integration
+
+### Data Collection
+Enable serial CSV output in `main.cpp`:
+```cpp
+// Format: 21 features (15 hall + 3 euler + 3 gyro), comma-separated
+Serial.printf("%.2f,%.2f,...\n", packet.sensors.hall_xyz[0], ...);
 ```
-Core 0:
-  - Task_SensorRead (Priority 3, 10ms period): TMAG5273 + BNO085 data acquisition
-  - Kalman filtering applied in SensorManager
+Run: `edge-impulse-data-forwarder --baud-rate 115200`
 
-Core 1:
-  - Task_Inference (Priority 2): TFLite Micro inference on sliding window (30 frames)
-  - Task_Comms (Priority 1): UDP + WebSocket + BLE communication
-```
+### Inference
+After exporting Edge Impulse library to `/lib/`:
+1. Build `signal_t` from sliding window buffer (30 frames × 21 features)
+2. Call `run_classifier(&signal, &result, false)`
+3. Threshold: `result.classification[i].value > 0.85` for local output
 
-### Sensor Hardware
-- **5x TMAG5273A1**: Hall effect sensors for MCP joints (managed via TCA9548A I2C multiplexer)
-- **1x BNO085**: 9-axis IMU on wrist (outputs hardware-fused quaternion)
-- **I2C pins**: SDA=GPIO8, SCL=GPIO9 (ESP32-S3)
+---
 
-### Data Protocol (Nanopb Protobuf)
-```proto
+## Sensor Drivers
+
+### TMAG5273 (Hall Sensors - 5x via TCA9548A)
+- Address: `0x70` (TCA), default TMAG addresses
+- Mode: `TMAG5273_OPERATING_MODE_CONTINUOUS`
+- 12-bit resolution, ±40mT range
+
+### BNO085 (IMU)
+- Address: `0x4A`
+- Enable: `SH2_GAME_ROTATION_VECTOR` (quaternion→euler), `SH2_GYROSCOPE_CALIBRATED`
+- Hardware quaternion fusion via SH-2 protocol
+
+---
+
+## Data Protocol (Protobuf/Nanopb)
+
+`glove_data.proto`:
+```protobuf
 message GloveData {
     uint32 timestamp = 1;
     repeated float hall_features = 2;  // 15 values (5 sensors × 3 axes)
     repeated float imu_features = 3;   // 6 values (3 euler + 3 gyro)
-    repeated float flex_features = 4;  // 5 values (future flex sensors)
-    uint32 l1_gesture_id = 5;          // L1 inference result
+    repeated float flex_features = 4;  // 5 values (future)
+    uint32 l1_gesture_id = 5;
 }
 ```
 
-### TensorFlow Lite Micro Integration
-- Model architecture: 1D-CNN + Temporal Attention (128 hidden dim, 8 attention heads)
-- Input: 30-frame sliding window × 21 features (15 hall + 3 euler + 3 gyro)
-- Output: 46 gesture classes with INT8 quantization
-- Threshold: Confidence > 0.85 (INT8 value 108) triggers L1 gesture detection
-- Tensor arena: 64KB allocated
+---
 
-### 3D Rendering Pipeline (Unity)
-- UDP receiver parses GloveData protobuf
-- ManoController maps sensor data to ms-MANO parametric hand model
-- XR Hands Package for Unity 2022 LTS integration
+## L1 Model Architecture
 
-## Development Workflow
+1D-CNN + TemporalAttention (Eq.11-13 in paper):
+- 3 Conv1d blocks (21→32→64→128 channels)
+- TemporalAttention: `e_t = v^T * tanh(W_h * h_t + W_e * e_mean)`
+- ~34K parameters, fits in ESP32-S3 PSRAM
 
-### Adding New Sensors
-1. Update `SensorManager.h` to include new sensor class
-2. Modify `SensorData` struct to include new data fields
-3. Update `glove_data.proto` and regenerate with nanopb: `nanopb_generator.py glove_data.proto`
-4. Adjust sliding window buffer size in `main.cpp` if feature count changes
+---
 
-### Training New L1 Model
-1. Collect data with `scripts/data_collector.py`
-2. Modify `L1EdgeModel` class in `scripts/l1_edge_model.py` for architecture changes
-3. Export to TFLite INT8 format
-4. Convert to `model_data.h` C array for firmware inclusion
-5. Rebuild firmware with new model
+## Dependencies
 
-### Modifying Communication Protocol
-- Protobuf changes require regeneration of `glove_data.pb.c` and `glove_data.pb.h`
-- UDP port default: 8888
-- WebSocket port default: 81
-- BLE service UUID defined in `BLEManager.h`
+### Firmware (platformio.ini)
+- `nanopb/Nanopb @ ^0.4.7`
+- `adafruit/Adafruit BNO08x @ ^1.2.5`
+- `sparkfun/SparkFun TMAG5273 @ ^1.0.0`
+- `h2zero/NimBLE-Arduino @ ^1.4.1`
+- `links2004/WebSockets @ ^2.4.1`
+- Edge Impulse exported library → `/lib/edge-impulse-sdk/`
+
+### Frontend
+- React 19 + Vite 6 + TailwindCSS 4
+- For 3D rendering: React Three Fiber (R3F) + Zustand
+
+---
 
 ## Key Files Reference
 
 | File | Purpose |
 |------|---------|
-| `firmware/src/main.cpp` | FreeRTOS task orchestration, TFLite setup |
-| `firmware/lib/Sensors/SensorManager.h` | TMAG5273 + BNO085 driver, Kalman filtering |
-| `firmware/lib/Comms/glove_data.proto` | Protobuf message definition |
-| `firmware/src/model_data.h` | TFLite model weights (INT8 quantized) |
-| `scripts/l1_edge_model.py` | PyTorch model definition and training |
-| `unity/UDPReceiver.cs` | Unity UDP socket handler |
-| `unity/ManoController.cs` | Sensor → MANO parameter mapping |
+| `source/firmware/src/main.cpp` | FreeRTOS tasks, Edge Impulse integration |
+| `source/firmware/lib/Sensors/SensorManager.h` | TMAG5273 + BNO085 drivers |
+| `source/firmware/lib/Filters/Kalman1D.h` | 1D Kalman filter |
+| `source/scripts/l1_edge_model.py` | PyTorch L1 model definition |
+| `source/scripts/l2_inference.py` | ST-GCN inference (needs rebuild from MS-GCN3) |
+| `PROJECT_CONTEXT_AND_DECISIONS.md` | Full ADR and analysis |
 
-## I2C Multiplexer Usage (TCA9548A)
+---
 
-Channel selection for TMAG5273 sensors:
-```cpp
-void tcaSelect(uint8_t channel) {
-    Wire.beginTransmission(0x70);  // TCA9548A address
-    Wire.write(1 << channel);     // Select channel 0-4
-    Wire.endTransmission();
-}
-```
+## Development Phases
 
-Each TMAG5273 requires channel selection before I2C communication.
+1. **P0**: Fix critical bugs (xTaskCreatePinnedToCore)
+2. **P1**: HAL & drivers (TMAG5273, BNO085, Kalman)
+3. **P2**: BLE + Serial CSV (Edge Impulse data collection)
+4. **P3**: Edge Impulse training → L1 inference
+5. **P4**: WiFi UDP + WebSocket + Tauri dashboard
+6. **P5**: L2 ST-GCN (self-built) + NLP + TTS
+
+---
 
 ## Performance Targets
 
-- L1 inference latency: < 3ms
-- End-to-end latency: < 50ms (sensor to 3D render)
-- Recognition accuracy: > 95% (46 gesture classes)
-- Sample rate: 100Hz (10ms interval)
-- Battery life: > 12 hours (600mAh)
+| Metric | Target |
+|--------|--------|
+| L1 inference latency | <3ms |
+| L2 inference latency | <20ms |
+| End-to-end latency | <100ms (with TTS) |
+| L1 accuracy (20 classes) | >90% Top-1 |
+| Sensor sampling rate | 100Hz |
+| Battery life | >12h (600mAh) |
+
+---
+
+## Hardware Context Required
+
+Before any firmware implementation/debug:
+1. Target board: ESP32-S3-DevKitC-1 N16R8
+2. Pin mappings: I2C on GPIO 8/9 (SDA/SCL)
+3. Connected devices: 5× TMAG5273 (via TCA9548A), 1× BNO085
+4. PSRAM: 16MB available for model + buffers
+
+---
+
+## Skill Agents Available
+
+- `esp32-firmware-engineer`: ESP-IDF/Arduino firmware, FreeRTOS, peripherals
+- `embedded-systems`: General embedded patterns, RTOS, memory optimization
+
+Invoke with `/agent esp32-firmware-engineer` for firmware-specific tasks.

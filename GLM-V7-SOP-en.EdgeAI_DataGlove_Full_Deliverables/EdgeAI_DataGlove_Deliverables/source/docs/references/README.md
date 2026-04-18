@@ -4,3 +4,19 @@
 # 2. BNO085_Reference_Manual.pdf
 # 3. ESP32-S3_Technical_Reference.pdf
 # 4. OpenHands_API_Docs.md
+
+
+
+
+
+重点参考开源仓库:
+
+https://github.com/edgeimpulse/ei-agentic-claude
+
+
+
+# SKILL
+
+npx skills add https://github.com/jeffallan/claude-skills --skill embedded-systems
+
+npx skills add https://github.com/adamlipecz/esp32-firmware-engineer-skill --skill esp32-firmware-engineer
