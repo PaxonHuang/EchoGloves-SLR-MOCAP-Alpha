@@ -13,7 +13,9 @@
 
 https://github.com/edgeimpulse/ei-agentic-claude
 
+https://github.com/garyzhao/SemGCN
 
+https://github.com/edgeimpulse/firmware-espressif-esp32
 
 # SKILL
 

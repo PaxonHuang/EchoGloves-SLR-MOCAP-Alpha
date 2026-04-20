@@ -187,7 +187,8 @@ void setup() {
     dataQueue = xQueueCreate(10, sizeof(InferenceResult));
     inferenceQueue = xQueueCreate(10, sizeof(FullDataPacket));
 
-    xTaskCreatePinnedToCore(TaskSensorReadHandle, "SensorRead", 4096, NULL, 3, &TaskSensorReadHandle, 1);
-    xTaskCreatePinnedToCore(TaskInferenceHandle, "Inference", 8192, NULL, 2, &TaskInferenceHandle, 0);
-    xTaskCreatePinnedToCore(TaskCommsHandle, "Comms", 8192, NULL, 1, &TaskCommsHandle, 0);
+    // FIXED: First param must be function pointer, NOT handle variable
+    xTaskCreatePinnedToCore(Task_SensorRead, "SensorRead", 4096, NULL, 3, &TaskSensorReadHandle, 1);
+    xTaskCreatePinnedToCore(Task_Inference, "Inference", 8192, NULL, 2, &TaskInferenceHandle, 0);
+    xTaskCreatePinnedToCore(Task_Comms, "Comms", 8192, NULL, 1, &TaskCommsHandle, 0);
 }

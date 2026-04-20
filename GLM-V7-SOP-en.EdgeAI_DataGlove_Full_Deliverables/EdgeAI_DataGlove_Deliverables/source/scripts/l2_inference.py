@@ -5,26 +5,12 @@ import socket
 import edge_tts
 import asyncio
 
-class PseudoSkeletonMapper(nn.Module):
-    def __init__(self):
-        super(PseudoSkeletonMapper, self).__init__()
-        # Eq 16: S = W_map * x_sensor + b_map
-        # Map 21 features to 42 skeleton features (21 landmarks * 2D)
-        self.mapping = nn.Linear(21, 42)
+# PseudoSkeletonMapper moved to stgcn.py
 
-    def forward(self, x):
-        return self.mapping(x)
-
-class STGCNModel(nn.Module):
-    def __init__(self, num_classes=46):
-        super(STGCNModel, self).__init__()
-        # Simplified ST-GCN wrapper
-        self.fc = nn.Linear(42 * 30, num_classes)
-
-    def forward(self, x):
-        # x shape: (Batch, Time=30, Landmarks=21, Coords=2)
-        x = x.view(x.size(0), -1)
-        return self.fc(x)
+# FIXED: Import REAL ST-GCN with graph convolution structure
+# The original nn.Linear implementation was FAKE - it just flattened input
+# and lost all spatial (hand skeleton) and temporal information.
+from stgcn import STGCNModel, PseudoSkeletonMapper
 
 def nlp_grammar_correction(words):
     # Table V: NLP Grammar Correction Rules
