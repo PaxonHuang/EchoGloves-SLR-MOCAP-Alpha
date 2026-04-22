@@ -2,7 +2,11 @@
   "permissions": {
     "allow": [
       "Bash(dir)",
-      "Bash(pio run *)"
+      "Bash(pio run *)",
+      "Bash(export PATH=\"$PATH:/c/Users/QuenchKidney/.platformio/penv/Scripts\")",
+      "Bash(pio --version)",
+      "Bash(C:/Users/QuenchKidney/.platformio/penv/Scripts/pio.exe *)",
+      "Bash(cmd *)"
     ]
   }
 }
