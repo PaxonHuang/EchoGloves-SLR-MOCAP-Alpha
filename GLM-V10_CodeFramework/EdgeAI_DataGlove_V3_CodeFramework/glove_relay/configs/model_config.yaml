@@ -1,0 +1,52 @@
+# =============================================================================
+# Model Configuration — L1 / L2 model registry and hot-switch settings
+# =============================================================================
+# The *active* model for each level is selected at startup (or switched at
+# runtime via the /api/models/switch endpoint).
+# =============================================================================
+
+# --- L1 lightweight classifiers (run on relay / edge) ---
+active_l1_model: "cnn_attention_v2"
+
+l1_models:
+  - name: "cnn_attention_v2"
+    description: "1D-CNN + Temporal Attention (~34K params)"
+    checkpoint: "checkpoints/l1_cnn_attention_v2.pt"
+    input_dim: 21          # 15 hall + 6 IMU features per frame
+    num_classes: 46
+    quantized: false
+    metadata:
+      flops: 0.42          # estimated MFLOPs
+      latency_ms: 1.2      # on Intel i5 (CPU)
+
+  - name: "ms_tcn_v1"
+    description: "Multi-Scale Temporal Convolutional Network (~12K params)"
+    checkpoint: "checkpoints/l1_ms_tcn_v1.pt"
+    input_dim: 21
+    num_classes: 46
+    quantized: false
+    metadata:
+      flops: 0.18
+      latency_ms: 0.8
+
+# --- L2 heavy classifier (relay-side, triggered on low L1 confidence) ---
+active_l2_model: "stgcn_v1"
+
+l2_models:
+  - name: "stgcn_v1"
+    description: "Spatial-Temporal Graph Convolutional Network (~280K params)"
+    checkpoint: "checkpoints/l2_stgcn_v1.pt"
+    input_dim: 21
+    hidden_dim: 64
+    num_classes: 46
+    num_frames: 30         # sliding window for temporal modeling
+    quantized: false
+    metadata:
+      flops: 3.80
+      latency_ms: 8.5
+
+# --- Hot-switch settings ---
+hot_switch:
+  enabled: true
+  auto_fallback: true      # fall back to previous model on load failure
+  warmup_inference: true   # run one dummy inference after loading

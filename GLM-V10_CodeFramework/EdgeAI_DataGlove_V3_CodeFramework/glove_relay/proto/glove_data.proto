@@ -1,0 +1,38 @@
+syntax = "proto3";
+
+package glove;
+
+// GloveData — sensor payload sent from ESP32 to the relay server via UDP.
+//
+// Layout summary:
+//   15 hall-effect / flex sensors  (uint16, 0–4095)
+//    6 IMU channels               (float32: accel_x/y/z, gyro_x/y/z)
+//    4 quaternion channels (opt.) (float32: w/x/y/z)
+//    timestamp + sequence number
+message GloveData {
+  // Monotonically increasing sequence number (wraps at 2^32).
+  uint32 seq_num          = 1;
+
+  // UTC epoch time in seconds (set by ESP32 NTP sync).
+  double timestamp        = 2;
+
+  // 15 hall-effect / flex sensor ADC values.
+  // Indices 0–4: thumb, 5–8: index, 9–12: middle, 13–16: ring, 17–20: pinky
+  // (mapped to 15 channels in firmware).
+  repeated uint32 hall_sensor = 3;  // max 15 elements
+
+  // 6-axis IMU data: [accel_x, accel_y, accel_z, gyro_x, gyro_y, gyro_z]
+  repeated float imu_data  = 4;  // max 6 elements
+
+  // Optional orientation quaternion: [w, x, y, z]
+  repeated float quaternion = 5;  // max 4 elements
+
+  // Device status bitmask:
+  //   bit 0 — sensor data valid
+  //   bit 1 — IMU calibrated
+  //   bit 2 — low battery warning
+  uint32 status           = 6;
+
+  // Battery voltage in millivolts (optional).
+  uint32 battery_mv       = 7;
+}

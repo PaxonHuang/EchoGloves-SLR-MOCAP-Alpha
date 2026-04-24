@@ -1,0 +1,103 @@
+{
+  "version": "1.0.0",
+  "language": "CSL",
+  "language_name_en": "Chinese Sign Language",
+  "language_name_zh": "中国手语",
+  "description": "46 CSL gesture labels used in the EdgeAI DataGlove V3 sign language recognition system.",
+  "total_gestures": 46,
+  "source": "EdgeAI DataGlove V3 Dataset",
+  "last_updated": "2024-12-01",
+
+  "categories": {
+    "greetings": {
+      "description": "常用问候语 (Common Greetings)",
+      "gestures": ["你好", "早上好", "下午好", "晚上好", "再见"]
+    },
+    "numbers": {
+      "description": "数字 (Numbers)",
+      "gestures": ["一", "二", "三", "四", "五", "六", "七", "八", "九", "十"]
+    },
+    "daily_life": {
+      "description": "日常生活 (Daily Life)",
+      "gestures": ["吃饭", "喝水", "睡觉", "洗澡", "休息", "上班", "下班"]
+    },
+    "emotions": {
+      "description": "情感 (Emotions)",
+      "gestures": ["开心", "难过", "生气", "害怕", "谢谢", "对不起"]
+    },
+    "people": {
+      "description": "人物 (People)",
+      "gestures": ["我", "你", "他", "朋友", "家人", "老师", "学生"]
+    },
+    "places": {
+      "description": "地点 (Places)",
+      "gestures": ["家", "学校", "医院", "商店"]
+    },
+    "activities": {
+      "description": "活动 (Activities)",
+      "gestures": ["学习", "工作", "运动", "唱歌", "跳舞"]
+    },
+    "nature": {
+      "description": "自然 (Nature)",
+      "gestures": ["天气", "太阳", "月亮", "水"]
+    },
+    "abstract": {
+      "description": "抽象概念 (Abstract Concepts)",
+      "gestures": ["爱", "希望", "和平"]
+    }
+  },
+
+  "gestures": [
+    { "id": 0,  "label_zh": "你好",     "label_en": "Hello",           "category": "greetings",   "difficulty": 1, "notes": "Open palm wave or nod gesture" },
+    { "id": 1,  "label_zh": "早上好",   "label_en": "Good Morning",    "category": "greetings",   "difficulty": 2, "notes": "Combined gesture: morning + hello" },
+    { "id": 2,  "label_zh": "下午好",   "label_en": "Good Afternoon",  "category": "greetings",   "difficulty": 2, "notes": "Combined gesture: afternoon + hello" },
+    { "id": 3,  "label_zh": "晚上好",   "label_en": "Good Evening",    "category": "greetings",   "difficulty": 2, "notes": "Combined gesture: evening + hello" },
+    { "id": 4,  "label_zh": "再见",     "label_en": "Goodbye",         "category": "greetings",   "difficulty": 1, "notes": "Open hand wave" },
+    { "id": 5,  "label_zh": "一",       "label_en": "One",             "category": "numbers",     "difficulty": 1, "notes": "Index finger extended" },
+    { "id": 6,  "label_zh": "二",       "label_en": "Two",             "category": "numbers",     "difficulty": 1, "notes": "Index and middle finger extended" },
+    { "id": 7,  "label_zh": "三",       "label_en": "Three",           "category": "numbers",     "difficulty": 1, "notes": "Index, middle, ring extended" },
+    { "id": 8,  "label_zh": "四",       "label_en": "Four",            "category": "numbers",     "difficulty": 1, "notes": "All fingers except thumb extended" },
+    { "id": 9,  "label_zh": "五",       "label_en": "Five",            "category": "numbers",     "difficulty": 1, "notes": "All five fingers extended" },
+    { "id": 10, "label_zh": "六",       "label_en": "Six",             "category": "numbers",     "difficulty": 2, "notes": "Thumb and pinky extended" },
+    { "id": 11, "label_zh": "七",       "label_en": "Seven",           "category": "numbers",     "difficulty": 2, "notes": "Thumb, index, middle pinched + ring, pinky extended" },
+    { "id": 12, "label_zh": "八",       "label_en": "Eight",           "category": "numbers",     "difficulty": 2, "notes": "Thumb and index form circle, others extended" },
+    { "id": 13, "label_zh": "九",       "label_en": "Nine",            "category": "numbers",     "difficulty": 2, "notes": "Index hook, other fingers curled" },
+    { "id": 14, "label_zh": "十",       "label_en": "Ten",             "category": "numbers",     "difficulty": 2, "notes": "Crossed index and middle fingers" },
+    { "id": 15, "label_zh": "吃饭",     "label_en": "Eat",             "category": "daily_life",  "difficulty": 2, "notes": "Fingertips to mouth motion" },
+    { "id": 16, "label_zh": "喝水",     "label_en": "Drink Water",     "category": "daily_life",  "difficulty": 2, "notes": "Thumb to mouth, tilting hand" },
+    { "id": 17, "label_zh": "睡觉",     "label_en": "Sleep",           "category": "daily_life",  "difficulty": 2, "notes": "Hand beside tilted head" },
+    { "id": 18, "label_zh": "洗澡",     "label_en": "Shower",          "category": "daily_life",  "difficulty": 3, "notes": "Both hands rubbing motion on chest" },
+    { "id": 19, "label_zh": "休息",     "label_en": "Rest",            "category": "daily_life",  "difficulty": 2, "notes": "Closed fists, arms relaxed" },
+    { "id": 20, "label_zh": "上班",     "label_en": "Go to Work",      "category": "daily_life",  "difficulty": 3, "notes": "Fingers walking motion on opposite palm" },
+    { "id": 21, "label_zh": "下班",     "label_en": "Get Off Work",    "category": "daily_life",  "difficulty": 3, "notes": "Reverse walking motion" },
+    { "id": 22, "label_zh": "开心",     "label_en": "Happy",           "category": "emotions",    "difficulty": 1, "notes": "Open palms, upward chest motion" },
+    { "id": 23, "label_zh": "难过",     "label_en": "Sad",             "category": "emotions",    "difficulty": 2, "notes": "Both hands down, fingers drooping" },
+    { "id": 24, "label_zh": "生气",     "label_en": "Angry",           "category": "emotions",    "difficulty": 2, "notes": "Clenched fist, shaking motion" },
+    { "id": 25, "label_zh": "害怕",     "label_en": "Afraid",          "category": "emotions",    "difficulty": 2, "notes": "Trembling open hands near face" },
+    { "id": 26, "label_zh": "谢谢",     "label_en": "Thank You",       "category": "emotions",    "difficulty": 1, "notes": "Flat hand, forward from chin" },
+    { "id": 27, "label_zh": "对不起",   "label_en": "Sorry",           "category": "emotions",    "difficulty": 2, "notes": "Fist to chest, circular motion" },
+    { "id": 28, "label_zh": "我",       "label_en": "I / Me",          "category": "people",      "difficulty": 1, "notes": "Index finger pointing to chest" },
+    { "id": 29, "label_zh": "你",       "label_en": "You",             "category": "people",      "difficulty": 1, "notes": "Index finger pointing forward" },
+    { "id": 30, "label_zh": "他",       "label_en": "He / Him",        "category": "people",      "difficulty": 2, "notes": "Index finger pointing to side" },
+    { "id": 31, "label_zh": "朋友",     "label_en": "Friend",          "category": "people",      "difficulty": 2, "notes": "Both index fingers hooked together" },
+    { "id": 32, "label_zh": "家人",     "label_en": "Family",          "category": "people",      "difficulty": 3, "notes": "Both hands forming circle at chest" },
+    { "id": 33, "label_zh": "老师",     "label_en": "Teacher",         "category": "people",      "difficulty": 2, "notes": "Both hands flat, thumbs touching" },
+    { "id": 34, "label_zh": "学生",     "label_en": "Student",         "category": "people",      "difficulty": 2, "notes": "Open palm to forehead" },
+    { "id": 35, "label_zh": "家",       "label_en": "Home",            "category": "places",      "difficulty": 2, "notes": "Fingertips together forming roof shape" },
+    { "id": 36, "label_zh": "学校",     "label_en": "School",          "category": "places",      "difficulty": 3, "notes": "Both palms clap together twice" },
+    { "id": 37, "label_zh": "医院",     "label_en": "Hospital",        "category": "places",      "difficulty": 3, "notes": "Cross on upper arm (Red Cross symbol)" },
+    { "id": 38, "label_zh": "商店",     "label_en": "Shop",            "category": "places",      "difficulty": 3, "notes": "Hand flat, mimicking shelf" },
+    { "id": 39, "label_zh": "学习",     "label_en": "Study",           "category": "activities",  "difficulty": 2, "notes": "Flat hand at temple, moving forward" },
+    { "id": 40, "label_zh": "工作",     "label_en": "Work",            "category": "activities",  "difficulty": 2, "notes": "Fist to palm, tapping" },
+    { "id": 41, "label_zh": "运动",     "label_en": "Exercise",        "category": "activities",  "difficulty": 2, "notes": "Both arms in running motion" },
+    { "id": 42, "label_zh": "唱歌",     "label_en": "Sing",            "category": "activities",  "difficulty": 2, "notes": "Open hand waving near mouth" },
+    { "id": 43, "label_zh": "跳舞",     "label_en": "Dance",           "category": "activities",  "difficulty": 3, "notes": "Both hands rotating at wrists" },
+    { "id": 44, "label_zh": "天气",     "label_en": "Weather",         "category": "nature",      "difficulty": 3, "notes": "Index finger drawing circle upward" },
+    { "id": 45, "label_zh": "太阳",     "label_en": "Sun",             "category": "nature",      "difficulty": 2, "notes": "Hand overhead, fingers spread" },
+    { "id": 46, "label_zh": "月亮",     "label_en": "Moon",            "category": "nature",      "difficulty": 2, "notes": "Crescent shape with thumb and index" },
+    { "id": 47, "label_zh": "水",       "label_en": "Water",           "category": "nature",      "difficulty": 1, "notes": "W-motion with index and middle finger" },
+    { "id": 48, "label_zh": "爱",       "label_en": "Love",            "category": "abstract",    "difficulty": 1, "notes": "Arms crossed over chest" },
+    { "id": 49, "label_zh": "希望",     "label_en": "Hope",            "category": "abstract",    "difficulty": 3, "notes": "Fingertips pressed together, raised upward" },
+    { "id": 50, "label_zh": "和平",     "label_en": "Peace",           "category": "abstract",    "difficulty": 1, "notes": "V-sign with index and middle finger" }
+  ]
+}

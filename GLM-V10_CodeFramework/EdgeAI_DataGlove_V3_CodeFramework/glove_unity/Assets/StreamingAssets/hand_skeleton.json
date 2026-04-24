@@ -1,0 +1,186 @@
+{
+  "skeleton_name": "MediaPipe_Hand_21",
+  "version": "1.0.0",
+  "description": "21-keypoint hand skeleton based on MediaPipe Hand Landmarker / XR Hands convention. Used for the EdgeAI DataGlove V3 Unity visualization.",
+  "reference": "https://developers.google.com/mediapipe/solutions/vision/hand_landmarker",
+
+  "keypoints": [
+    { "index": 0,  "name": "WRIST",          "parent": -1, "side": "center" },
+    { "index": 1,  "name": "THUMB_CMC",      "parent": 0,  "side": "right"  },
+    { "index": 2,  "name": "THUMB_MCP",      "parent": 1,  "side": "right"  },
+    { "index": 3,  "name": "THUMB_IP",       "parent": 2,  "side": "right"  },
+    { "index": 4,  "name": "THUMB_TIP",      "parent": 3,  "side": "right"  },
+    { "index": 5,  "name": "INDEX_FINGER_MCP","parent": 0,  "side": "right"  },
+    { "index": 6,  "name": "INDEX_FINGER_PIP","parent": 5,  "side": "right"  },
+    { "index": 7,  "name": "INDEX_FINGER_DIP","parent": 6,  "side": "right"  },
+    { "index": 8,  "name": "INDEX_FINGER_TIP","parent": 7,  "side": "right"  },
+    { "index": 9,  "name": "MIDDLE_FINGER_MCP","parent": 0, "side": "center" },
+    { "index": 10, "name": "MIDDLE_FINGER_PIP","parent": 9,  "side": "center" },
+    { "index": 11, "name": "MIDDLE_FINGER_DIP","parent": 10, "side": "center" },
+    { "index": 12, "name": "MIDDLE_FINGER_TIP","parent": 11, "side": "center" },
+    { "index": 13, "name": "RING_FINGER_MCP", "parent": 0,  "side": "left"   },
+    { "index": 14, "name": "RING_FINGER_PIP", "parent": 13, "side": "left"   },
+    { "index": 15, "name": "RING_FINGER_DIP", "parent": 14, "side": "left"   },
+    { "index": 16, "name": "RING_FINGER_TIP", "parent": 15, "side": "left"   },
+    { "index": 17, "name": "PINKY_MCP",       "parent": 0,  "side": "left"   },
+    { "index": 18, "name": "PINKY_PIP",       "parent": 17, "side": "left"   },
+    { "index": 19, "name": "PINKY_DIP",       "parent": 18, "side": "left"   },
+    { "index": 20, "name": "PINKY_TIP",       "parent": 19, "side": "left"   }
+  ],
+
+  "bone_connections": [
+    { "start": 0,  "end": 1,  "name": "Wrist_to_Thumb_CMC"   },
+    { "start": 1,  "end": 2,  "name": "Thumb_CMC_to_MCP"     },
+    { "start": 2,  "end": 3,  "name": "Thumb_MCP_to_IP"      },
+    { "start": 3,  "end": 4,  "name": "Thumb_IP_to_Tip"      },
+    { "start": 0,  "end": 5,  "name": "Wrist_to_Index_MCP"   },
+    { "start": 5,  "end": 6,  "name": "Index_MCP_to_PIP"     },
+    { "start": 6,  "end": 7,  "name": "Index_PIP_to_DIP"     },
+    { "start": 7,  "end": 8,  "name": "Index_DIP_to_Tip"     },
+    { "start": 0,  "end": 9,  "name": "Wrist_to_Middle_MCP"  },
+    { "start": 9,  "end": 10, "name": "Middle_MCP_to_PIP"    },
+    { "start": 10, "end": 11, "name": "Middle_PIP_to_DIP"    },
+    { "start": 11, "end": 12, "name": "Middle_DIP_to_Tip"    },
+    { "start": 0,  "end": 13, "name": "Wrist_to_Ring_MCP"    },
+    { "start": 13, "end": 14, "name": "Ring_MCP_to_PIP"      },
+    { "start": 14, "end": 15, "name": "Ring_PIP_to_DIP"      },
+    { "start": 15, "end": 16, "name": "Ring_DIP_to_Tip"      },
+    { "start": 0,  "end": 17, "name": "Wrist_to_Pinky_MCP"   },
+    { "start": 17, "end": 18, "name": "Pinky_MCP_to_PIP"     },
+    { "start": 18, "end": 19, "name": "Pinky_PIP_to_DIP"     },
+    { "start": 19, "end": 20, "name": "Pinky_DIP_to_Tip"     }
+  ],
+
+  "fingers": {
+    "Thumb": {
+      "keypoint_indices": [1, 2, 3, 4],
+      "hall_sensor_indices": [0, 1, 2],
+      "joint_names": ["CMC", "MCP", "IP", "TIP"],
+      "joint_limits": {
+        "min_angles": [0.0, -20.0, 0.0, 0.0],
+        "max_angles": [60.0, 50.0, 80.0, 30.0],
+        "rotation_axes": [
+          [0.0, 0.0, 1.0],
+          [1.0, 0.0, 0.0],
+          [1.0, 0.0, 0.0],
+          [1.0, 0.0, 0.0]
+        ]
+      }
+    },
+    "Index": {
+      "keypoint_indices": [5, 6, 7, 8],
+      "hall_sensor_indices": [3, 4, 5],
+      "joint_names": ["MCP", "PIP", "DIP", "TIP"],
+      "joint_limits": {
+        "min_angles": [0.0, 0.0, 0.0, 0.0],
+        "max_angles": [90.0, 100.0, 80.0, 20.0],
+        "rotation_axes": [
+          [1.0, 0.0, 0.0],
+          [1.0, 0.0, 0.0],
+          [1.0, 0.0, 0.0],
+          [1.0, 0.0, 0.0]
+        ]
+      }
+    },
+    "Middle": {
+      "keypoint_indices": [9, 10, 11, 12],
+      "hall_sensor_indices": [6, 7, 8],
+      "joint_names": ["MCP", "PIP", "DIP", "TIP"],
+      "joint_limits": {
+        "min_angles": [0.0, 0.0, 0.0, 0.0],
+        "max_angles": [90.0, 100.0, 80.0, 20.0],
+        "rotation_axes": [
+          [1.0, 0.0, 0.0],
+          [1.0, 0.0, 0.0],
+          [1.0, 0.0, 0.0],
+          [1.0, 0.0, 0.0]
+        ]
+      }
+    },
+    "Ring": {
+      "keypoint_indices": [13, 14, 15, 16],
+      "hall_sensor_indices": [9, 10, 11],
+      "joint_names": ["MCP", "PIP", "DIP", "TIP"],
+      "joint_limits": {
+        "min_angles": [0.0, 0.0, 0.0, 0.0],
+        "max_angles": [90.0, 100.0, 80.0, 20.0],
+        "rotation_axes": [
+          [1.0, 0.0, 0.0],
+          [1.0, 0.0, 0.0],
+          [1.0, 0.0, 0.0],
+          [1.0, 0.0, 0.0]
+        ]
+      }
+    },
+    "Pinky": {
+      "keypoint_indices": [17, 18, 19, 20],
+      "hall_sensor_indices": [12, 13, 14],
+      "joint_names": ["MCP", "PIP", "DIP", "TIP"],
+      "joint_limits": {
+        "min_angles": [0.0, 0.0, 0.0, 0.0],
+        "max_angles": [90.0, 100.0, 80.0, 20.0],
+        "rotation_axes": [
+          [1.0, 0.0, 0.0],
+          [1.0, 0.0, 0.0],
+          [1.0, 0.0, 0.0],
+          [1.0, 0.0, 0.0]
+        ]
+      }
+    }
+  },
+
+  "default_t_pose": {
+    "description": "Default open-hand T-pose positions (meters, relative to wrist). Y is up, Z is forward.",
+    "positions": [
+      [0.0,   0.0,   0.0],
+      [0.02,  0.02,  -0.01],
+      [0.04,  0.02,  -0.02],
+      [0.06,  0.02,  -0.03],
+      [0.07,  0.02,  -0.04],
+      [-0.02, 0.08,  -0.01],
+      [-0.02, 0.12,  -0.01],
+      [-0.02, 0.15,  -0.01],
+      [-0.02, 0.17,  -0.01],
+      [0.00,  0.08,  -0.01],
+      [0.00,  0.12,  -0.01],
+      [0.00,  0.15,  -0.01],
+      [0.00,  0.17,  -0.01],
+      [0.02,  0.08,  -0.01],
+      [0.02,  0.12,  -0.01],
+      [0.02,  0.15,  -0.01],
+      [0.02,  0.17,  -0.01],
+      [0.04,  0.07,  0.0],
+      [0.04,  0.10,  0.0],
+      [0.04,  0.12,  0.0],
+      [0.04,  0.13,  0.0]
+    ]
+  },
+
+  "mano_mapping": {
+    "description": "Mapping from 21 MediaPipe keypoints to 16 MANO model joints.",
+    "mano_joint_count": 16,
+    "keypoint_to_mano": {
+      "0":  { "mano_index": 0,  "name": "Wrist" },
+      "1":  { "mano_index": 1,  "name": "Thumb_CMC" },
+      "2":  { "mano_index": 2,  "name": "Thumb_MCP" },
+      "3":  { "mano_index": 3,  "name": "Thumb_IP" },
+      "4":  { "mano_index": 4,  "name": "Thumb_Tip" },
+      "5":  { "mano_index": 5,  "name": "Index_MCP" },
+      "6":  { "mano_index": 6,  "name": "Index_PIP" },
+      "7":  { "mano_index": 7,  "name": "Index_DIP" },
+      "8":  { "mano_index": 8,  "name": "Index_Tip" },
+      "9":  { "mano_index": 9,  "name": "Middle_MCP" },
+      "10": { "mano_index": 10, "name": "Middle_PIP" },
+      "11": { "mano_index": 11, "name": "Middle_DIP" },
+      "12": { "mano_index": 12, "name": "Middle_Tip" },
+      "13": { "mano_index": 13, "name": "Ring_MCP" },
+      "14": { "mano_index": 14, "name": "Ring_PIP" },
+      "15": { "mano_index": 15, "name": "Ring_DIP" },
+      "16": { "mano_index": 16, "name": "Ring_Tip" },
+      "17": { "mano_index": 17, "name": "Pinky_MCP" },
+      "18": { "mano_index": 18, "name": "Pinky_PIP" },
+      "19": { "mano_index": 19, "name": "Pinky_DIP" },
+      "20": { "mano_index": 20, "name": "Pinky_Tip" }
+    }
+  }
+}

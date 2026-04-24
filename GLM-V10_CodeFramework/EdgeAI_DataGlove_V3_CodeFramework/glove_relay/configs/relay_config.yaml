@@ -1,0 +1,57 @@
+# =============================================================================
+# Relay Server Configuration
+# =============================================================================
+# This file controls network ports, CORS policy, and inference behaviour for
+# the glove-relay FastAPI + WebSocket server.
+# =============================================================================
+
+# --- UDP listener (receives Protobuf from ESP32) ---
+udp:
+  host: "0.0.0.0"
+  port: 8888
+  buffer_size: 4096        # max datagram size in bytes
+  recv_timeout: 5.0        # seconds — asyncio timeout per recv
+
+# --- WebSocket server (sends JSON to React frontend) ---
+websocket:
+  host: "0.0.0.0"
+  port: 8765
+  max_connections: 10
+  ping_interval: 30        # seconds
+  ping_timeout: 10         # seconds
+
+# --- CORS origins ---
+cors:
+  origins:
+    - "http://localhost:5173"   # Vite dev server
+    - "http://localhost:3000"   # CRA dev server
+  allow_credentials: true
+  allow_methods: ["*"]
+  allow_headers: ["*"]
+
+# --- Inference pipeline ---
+inference:
+  l1_confidence_threshold: 0.85   # L2 triggered when L1 confidence ≤ this
+  l2_enabled: true                # master switch for L2 fallback
+  debounce_frames: 3              # min frames before re-triggering L2
+  gesture_silence_ms: 800         # silence gap to separate gestures (ms)
+  l2_window_size: 30              # sliding-window frame count for L2
+  device: "auto"                  # "auto" | "cpu" | "cuda"
+
+# --- Logging ---
+logging:
+  level: "INFO"                   # DEBUG | INFO | WARNING | ERROR
+  format: "%(asctime)s | %(levelname)-8s | %(name)s | %(message)s"
+  file: null                      # set to "logs/relay.log" to enable file logging
+
+# --- NLP / TTS ---
+nlp:
+  enabled: true
+  correction_rules: "configs/grammar_rules.yaml"
+
+tts:
+  enabled: true
+  voice: "zh-CN-XiaoxiaoNeural"
+  rate: "+0%"
+  volume: "+0%"
+  cache_dir: "data/tts_cache"

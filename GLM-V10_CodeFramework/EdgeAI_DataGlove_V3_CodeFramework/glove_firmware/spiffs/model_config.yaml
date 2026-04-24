@@ -1,0 +1,57 @@
+# =============================================================================
+# EdgeAI Data Glove V3 — Model Hot-Switch Configuration
+# =============================================================================
+# This file is stored in SPIFFS and read by ModelRegistry at boot.
+#
+# Format: Pseudo-YAML compatible with ArduinoJson v7 deserialization.
+# The 'active_model' field specifies which model to use on startup.
+# The 'models' array lists all models compiled into this firmware build.
+#
+# NOTE: This file does NOT contain model binary data. Models are compiled
+# into the firmware as C header arrays (model_data_*.h) via the Edge Impulse
+# or TFLite export pipeline.
+#
+# To add a new model:
+#   1. Export model as C array (Edge Impulse → C++ Library, or TFLite → .h)
+#   2. Place header in lib/Models/model_data_*.h
+#   3. Add an entry below
+#   4. Register it in ModelRegistry::loadDefaultModels()
+#   5. Rebuild and flash
+# =============================================================================
+
+active_model: "cnn_attention_v2"
+
+models:
+  - name: "cnn_attention_v2"
+    file: "model_data_cnn_attn.h"
+    type: "CNNAttention"
+    classes: 46
+    window_size: 30
+    input_features: 21
+    description: "CNN with attention mechanism for 46-class ASL recognition. Best accuracy model."
+
+  - name: "ms_tcn_v1"
+    file: "model_data_ms_tcn.h"
+    type: "MSTCN"
+    classes: 20
+    window_size: 30
+    input_features: 21
+    description: "Multi-Scale Temporal Convolutional Network for 20-class gesture subset. Faster inference."
+
+  - name: "lstm_v1"
+    file: "model_data_lstm.h"
+    type: "LSTM"
+    classes: 46
+    window_size: 30
+    input_features: 21
+    description: "LSTM-based sequential model. Higher latency but captures long-range temporal dependencies."
+
+# =============================================================================
+# Inference Parameters
+# =============================================================================
+inference:
+  confidence_threshold_high: 0.6    # Above this: accept L1 prediction
+  confidence_threshold_low: 0.3     # Below this: reject prediction
+  # Between 0.3 and 0.6: request L2 (cloud/edge) inference
+  l2_request_band: true             # Enable L2 handoff for uncertain predictions
+  max_inference_rate_hz: 30         # Cap inference to 30 Hz (sensor runs at 100 Hz)

@@ -1,0 +1,17 @@
+{
+  "name": "Edge AI 手语手套",
+  "short_name": "GloveAI",
+  "description": "Edge AI Sign Language Data Glove - Real-time Dashboard",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0f172a",
+  "theme_color": "#3b82f6",
+  "orientation": "any",
+  "icons": [
+    {
+      "src": "/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml"
+    }
+  ]
+}
