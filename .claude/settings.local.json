@@ -6,7 +6,16 @@
       "Bash(export PATH=\"$PATH:/c/Users/QuenchKidney/.platformio/penv/Scripts\")",
       "Bash(pio --version)",
       "Bash(C:/Users/QuenchKidney/.platformio/penv/Scripts/pio.exe *)",
-      "Bash(cmd *)"
+      "Bash(cmd *)",
+      "Bash(dir *)",
+      "PowerShell(New-Item *)",
+      "PowerShell(Move-Item *)",
+      "PowerShell(Copy-Item *)",
+      "Bash(where pio *)",
+      "Bash(pip show *)",
+      "PowerShell(Get-Command *)",
+      "Bash(curl -s \"https://api.platformio.org/v2/packages/search?query=TMAG5273\")",
+      "PowerShell(pio pkg *)"
     ]
   }
 }

@@ -1,9 +1,0 @@
-[project]
-name = "edge-ai-glove-upper"
-version = "0.1.0"
-description = "Edge AI Data Glove - Upper Computer L2 Inference Pipeline"
-requires-python = ">=3.9"
-readme = "README.md"
-
-[tool.setuptools.packages.find]
-where = ["src"]

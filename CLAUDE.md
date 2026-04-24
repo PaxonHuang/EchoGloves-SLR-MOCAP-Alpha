@@ -6,163 +6,124 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-**Edge-AI Data Glove**: Dual-tier inference system for real-time sign language translation and 3D hand animation. L1 (edge/on-device ESP32-S3) handles fast simple gesture recognition; L2 (PC) handles complex dynamic sign language recognition with ST-GCN.
+**Edge-AI Data Glove V3**: Dual-tier inference system for real-time sign language translation and 3D hand animation. 
 
-**Key Architecture Decisions**:
-- **TinyML Dual-Path**: Edge Impulse (fast MVP) OR PyTorch→TFLite INT8 (full reproduction)
-- **Self-built ST-GCN**: Not using OpenHands (unmaintained); building from MS-GCN3 paper
-- **Phased Communication**: BLE only for Phase 1-3; BLE + WiFi UDP for Phase 4+
-- **Hardware**: ESP32-S3-DevKitC-1 N16R8 (16MB PSRAM), TMAG5273 Hall sensors, BNO085 IMU, TCA9548A I2C mux
+**Architecture**:
+- **Layer 1 (Edge)**: ESP32-S3 with 1D-CNN+Attention L1 model (<3ms latency)
+- **Layer 2 (Relay)**: Python FastAPI + ST-GCN + NLP + TTS
+- **Layer 3a (Web MVP)**: React 18 + Vite + R3F (3D hand skeleton)
+- **Layer 3b (Unity Pro)**: Unity 2022 LTS + XR Hands + ms-MANO
+
+**Key Decisions**:
+- **No Rust/Tauri**: V3 uses pure Web (React + R3F), no desktop framework
+- **Python Relay**: Unified hub for UDP→WebSocket conversion + L2 inference
+- **Model Hot-Switch**: BaseModel interface + YAML config switching
+- **BLE for Provisioning Only**: Frontend uses WiFi→Relay→WebSocket
+
+---
+
+## Directory Structure
+
+```
+├── glove_firmware/      # ESP32-S3 PlatformIO firmware
+├── glove_relay/         # Python FastAPI relay server
+├── glove_web/           # React + R3F frontend
+├── glove_unity/         # Unity L3 Pro skeleton
+├── docs/                # SOP and Prompts
+│   ├── SOP_SPEC_PLAN_V3.md
+│   └── CLAUDE_CODE_PROMPTS_V3.md
+├── archive/             # Old code backup (can be deleted)
+└── CLAUDE.md
+```
 
 ---
 
 ## Build Commands
 
-### Firmware (PlatformIO)
+### Firmware (glove_firmware)
 ```bash
-# Build firmware
-pio run
-
-# Build and upload to device
-pio run -t upload
-
-# Monitor serial output (115200 baud)
-pio device monitor -b 115200
-
-# Clean build
-pio run -t clean
+cd glove_firmware
+pio run                    # Build
+pio run -t upload          # Upload to ESP32-S3
+pio device monitor         # Serial monitor (115200 baud)
 ```
 
-### Frontend (React/Vite)
+### Python Relay (glove_relay)
 ```bash
-cd source/frontend
+cd glove_relay
+pip install -r requirements.txt
+uvicorn src.main:app --host 0.0.0.0 --port 8000 --reload
+```
+
+### Web Frontend (glove_web)
+```bash
+cd glove_web
 npm install
-npm run dev      # Development server on port 3000
-npm run build    # Production build
-npm run lint     # TypeScript check
-```
-
-### Python Scripts (L2 Inference)
-```bash
-cd source/scripts
-python l2_inference.py
-python l1_edge_model.py
+npm run dev                # Dev server http://localhost:5173
+npm run build              # Production build
 ```
 
 ---
 
-## Critical Bugs Fixed
+## Critical Bug Fix (FreeRTOS)
 
-### xTaskCreatePinnedToCore Parameter Order (main.cpp L190-192)
-**WRONG**: `xTaskCreatePinnedToCore(TaskSensorReadHandle, ...)`
-**CORRECT**: `xTaskCreatePinnedToCore(Task_SensorRead, ...)` — first param is function pointer, not handle variable.
+**V2 Bug**: `xTaskCreatePinnedToCore(TaskSensorReadHandle, ...)` — passed handle variable as function pointer
 
-This bug causes Cache Access Exception crash because RTOS executes an integer address as code.
+**V3 Fix**: `xTaskCreatePinnedToCore(Task_SensorRead, ...)` — correct function pointer + `static_assert` validation
 
 ---
 
-## FreeRTOS Dual-Core Architecture
+## FreeRTOS Task Architecture
 
-- **Core 1**: `Task_SensorRead` — 100Hz sensor sampling (TMAG5273 + BNO085), Kalman filtering
-- **Core 0**: `Task_Inference` — Edge Impulse inference + `Task_Comms` — WiFi/BLE transmission
-
-Task priorities: SensorRead (3) > Inference (2) > Comms (1)
+| Task | Core | Priority | Frequency | Purpose |
+|------|------|----------|-----------|---------|
+| Task_SensorRead | 1 | 3 | 100Hz | I2C sampling + Kalman filter |
+| Task_Inference | 0 | 2 | ~30Hz | L1 model inference |
+| Task_Comms | 0 | 1 | 100Hz | BLE provisioning + UDP send |
 
 ---
 
-## Edge Impulse Integration
+## Data Flow
 
-### Data Collection
-Enable serial CSV output in `main.cpp`:
-```cpp
-// Format: 21 features (15 hall + 3 euler + 3 gyro), comma-separated
-Serial.printf("%.2f,%.2f,...\n", packet.sensors.hall_xyz[0], ...);
 ```
-Run: `edge-impulse-data-forwarder --baud-rate 115200`
-
-### Inference
-After exporting Edge Impulse library to `/lib/`:
-1. Build `signal_t` from sliding window buffer (30 frames × 21 features)
-2. Call `run_classifier(&signal, &result, false)`
-3. Threshold: `result.classification[i].value > 0.85` for local output
-
----
-
-## Sensor Drivers
-
-### TMAG5273 (Hall Sensors - 5x via TCA9548A)
-- Address: `0x70` (TCA), default TMAG addresses
-- Mode: `TMAG5273_OPERATING_MODE_CONTINUOUS`
-- 12-bit resolution, ±40mT range
-
-### BNO085 (IMU)
-- Address: `0x4A`
-- Enable: `SH2_GAME_ROTATION_VECTOR` (quaternion→euler), `SH2_GYROSCOPE_CALIBRATED`
-- Hardware quaternion fusion via SH-2 protocol
-
----
-
-## Data Protocol (Protobuf/Nanopb)
-
-`glove_data.proto`:
-```protobuf
-message GloveData {
-    uint32 timestamp = 1;
-    repeated float hall_features = 2;  // 15 values (5 sensors × 3 axes)
-    repeated float imu_features = 3;   // 6 values (3 euler + 3 gyro)
-    repeated float flex_features = 4;  // 5 values (future)
-    uint32 l1_gesture_id = 5;
-}
+ESP32-S3                    Python Relay              Web Frontend
+┌─────────────┐             ┌────────────┐           ┌───────────┐
+│ Sensors     │ UDP:8888    │ FastAPI    │ WS:8765   │ React+R3F │
+│ L1 Inference │──Protobuf─→│ Protobuf→  │──JSON──→ │ 3D Hand   │
+│ FreeRTOS    │             │ JSON       │           │ Skeleton  │
+└─────────────┘             │ L2 ST-GCN  │           └───────────┘
+                            │ NLP + TTS  │
+                            └────────────┘
 ```
 
 ---
 
-## L1 Model Architecture
+## Model Hot-Switch Architecture
 
-1D-CNN + TemporalAttention (Eq.11-13 in paper):
-- 3 Conv1d blocks (21→32→64→128 channels)
-- TemporalAttention: `e_t = v^T * tanh(W_h * h_t + W_e * e_mean)`
-- ~34K parameters, fits in ESP32-S3 PSRAM
-
----
-
-## Dependencies
-
-### Firmware (platformio.ini)
-- `nanopb/Nanopb @ ^0.4.7`
-- `adafruit/Adafruit BNO08x @ ^1.2.5`
-- `sparkfun/SparkFun TMAG5273 @ ^1.0.0`
-- `h2zero/NimBLE-Arduino @ ^1.4.1`
-- `links2004/WebSockets @ ^2.4.1`
-- Edge Impulse exported library → `/lib/edge-impulse-sdk/`
-
-### Frontend
-- React 19 + Vite 6 + TailwindCSS 4
-- For 3D rendering: React Three Fiber (R3F) + Zustand
+- **BaseModel Interface**: Python (`glove_relay/src/models/base_model.py`) + C++ (`glove_firmware/lib/Models/BaseModel.h`)
+- **Model Registry**: Dynamically load/switch models at runtime
+- **YAML Config**: `glove_relay/configs/model_config.yaml` defines active model
 
 ---
 
-## Key Files Reference
+## Key Files
 
 | File | Purpose |
 |------|---------|
-| `source/firmware/src/main.cpp` | FreeRTOS tasks, Edge Impulse integration |
-| `source/firmware/lib/Sensors/SensorManager.h` | TMAG5273 + BNO085 drivers |
-| `source/firmware/lib/Filters/Kalman1D.h` | 1D Kalman filter |
-| `source/scripts/l1_edge_model.py` | PyTorch L1 model definition |
-| `source/scripts/l2_inference.py` | ST-GCN inference (needs rebuild from MS-GCN3) |
-| `PROJECT_CONTEXT_AND_DECISIONS.md` | Full ADR and analysis |
+| `glove_firmware/src/main.cpp` | FreeRTOS tasks with static_assert fix |
+| `glove_firmware/lib/Models/ModelRegistry.h` | L1 model hot-switch |
+| `glove_relay/src/main.py` | FastAPI + WebSocket relay |
+| `glove_relay/src/models/stgcn_model.py` | L2 ST-GCN implementation |
+| `glove_web/src/hooks/useWebSocket.ts` | WebSocket client with auto-reconnect |
+| `glove_web/src/components/Hand3D/HandSkeleton.tsx` | 21-keypoint 3D hand |
 
 ---
 
-## Development Phases
+## Hardware Context
 
-1. **P0**: Fix critical bugs (xTaskCreatePinnedToCore)
-2. **P1**: HAL & drivers (TMAG5273, BNO085, Kalman)
-3. **P2**: BLE + Serial CSV (Edge Impulse data collection)
-4. **P3**: Edge Impulse training → L1 inference
-5. **P4**: WiFi UDP + WebSocket + Tauri dashboard
-6. **P5**: L2 ST-GCN (self-built) + NLP + TTS
+- **MCU**: ESP32-S3-DevKitC-1 N16R8 (8MB Flash + 8MB PSRAM)
+- **I2C**: GPIO 8 (SDA), GPIO 9 (SCL), 400kHz
+- **Sensors**: 5× TMAG5273 (via TCA9548A mux), 1× BNO085 (address 0x4A)
 
 ---
 
@@ -172,26 +133,38 @@ message GloveData {
 |--------|--------|
 | L1 inference latency | <3ms |
 | L2 inference latency | <20ms |
-| End-to-end latency | <100ms (with TTS) |
-| L1 accuracy (20 classes) | >90% Top-1 |
+| End-to-end latency | <100ms |
 | Sensor sampling rate | 100Hz |
-| Battery life | >12h (600mAh) |
+| L1 accuracy (46 classes) | >90% Top-1 |
+| L2 accuracy (46 classes) | >95% Top-1 |
 
 ---
 
-## Hardware Context Required
+## Development Phases
 
-Before any firmware implementation/debug:
-1. Target board: ESP32-S3-DevKitC-1 N16R8
-2. Pin mappings: I2C on GPIO 8/9 (SDA/SCL)
-3. Connected devices: 5× TMAG5273 (via TCA9548A), 1× BNO085
-4. PSRAM: 16MB available for model + buffers
+1. **P0**: Project init (PlatformIO + React + FastAPI)
+2. **P1**: HAL & drivers (TMAG5273, BNO085, TCA9548A)
+3. **P2**: Signal processing (Kalman filter)
+4. **P3**: L1 Edge Impulse / PyTorch training
+5. **P3.5**: Model Benchmark comparison
+6. **P4**: Communication (BLE provisioning + WiFi UDP)
+7. **P5**: Python Relay + L2 ST-GCN + NLP + TTS
+8. **P6**: Web rendering (React + R3F) / Unity Pro
+9. **P7**: Integration testing
+
+---
+
+## Documentation
+
+- **SOP**: `docs/SOP_SPEC_PLAN_V3.md` — Full phase specification (938 lines)
+- **Prompts**: `docs/CLAUDE_CODE_PROMPTS_V3.md` — 28 executable prompts
 
 ---
 
 ## Skill Agents Available
 
-- `esp32-firmware-engineer`: ESP-IDF/Arduino firmware, FreeRTOS, peripherals
-- `embedded-systems`: General embedded patterns, RTOS, memory optimization
+- `esp32-firmware-engineer`: ESP-IDF/Arduino firmware, FreeRTOS
+- `embedded-systems`: RTOS, memory optimization
+- `feature-dev`: Guided feature development
 
-Invoke with `/agent esp32-firmware-engineer` for firmware-specific tasks.
+Invoke with `/agent esp32-firmware-engineer` for firmware tasks.
