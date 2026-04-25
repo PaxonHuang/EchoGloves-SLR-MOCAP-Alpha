@@ -168,3 +168,21 @@ ESP32-S3                    Python Relay              Web Frontend
 - `feature-dev`: Guided feature development
 
 Invoke with `/agent esp32-firmware-engineer` for firmware tasks.
+
+---
+
+## PlatformIO Dependency Notes
+
+- **lib_deps syntax**: Use `owner/libname @ version` (space before @), NOT `owner/libname=@version`
+- **TMAG5273**: Local driver in `lib/Sensors/TMG5273.h/.cpp` — do NOT add SparkFun TMAG5273 library to lib_deps
+- **TFLite Micro**: Use `tanakamasayuki/TensorFlowLite_ESP32` (only ESP32 TFLite in PlatformIO registry)
+- **ESPAsyncUDP**: Use `me-no-dev/ESPAsyncUDP` (mathieucarbou fork not in registry)
+- **Build on Windows**: Use PowerShell for `pio run` — bash produces no output on this system
+- **pio path**: `C:\Users\QuenchKidney\.platformio\penv\Scripts\pio.exe`
+
+---
+
+## Gotchas
+
+- Session continuation `.txt` files appear in `glove_firmware/` root — add `*this-session-is-being-continued*` to `.gitignore`
+- `pio pkg search` crashes with UnicodeEncodeError on Windows — use `Out-File` + `Get-Content` workaround in PowerShell
