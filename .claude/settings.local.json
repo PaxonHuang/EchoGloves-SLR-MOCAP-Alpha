@@ -15,7 +15,10 @@
       "Bash(pip show *)",
       "PowerShell(Get-Command *)",
       "Bash(curl -s \"https://api.platformio.org/v2/packages/search?query=TMAG5273\")",
-      "PowerShell(pio pkg *)"
+      "PowerShell(pio pkg *)",
+      "Bash(ls -la glove_unity/)",
+      "Bash(ls -la archive/)",
+      "Bash(ls -la glove_web/public/)"
     ]
   }
 }
