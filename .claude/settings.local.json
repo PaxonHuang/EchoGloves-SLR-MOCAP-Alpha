@@ -1,24 +1,24 @@
 {
   "permissions": {
     "allow": [
-      "Bash(dir)",
-      "Bash(pio run *)",
-      "Bash(export PATH=\"$PATH:/c/Users/QuenchKidney/.platformio/penv/Scripts\")",
-      "Bash(pio --version)",
-      "Bash(C:/Users/QuenchKidney/.platformio/penv/Scripts/pio.exe *)",
-      "Bash(cmd *)",
-      "Bash(dir *)",
-      "PowerShell(New-Item *)",
-      "PowerShell(Move-Item *)",
-      "PowerShell(Copy-Item *)",
-      "Bash(where pio *)",
-      "Bash(pip show *)",
-      "PowerShell(Get-Command *)",
-      "Bash(curl -s \"https://api.platformio.org/v2/packages/search?query=TMAG5273\")",
-      "PowerShell(pio pkg *)",
-      "Bash(ls -la glove_unity/)",
-      "Bash(ls -la archive/)",
-      "Bash(ls -la glove_web/public/)"
+      "Bash(dir /s /b /a-d)",
+      "Bash(powershell -Command 'Get-ChildItem -Path '\\\\''glove_firmware'\\\\'' -Recurse -Force | Where-Object { $_.FullName -notmatch '\\\\''\\\\.pio'\\\\'' } | Select-Object FullName')",
+      "Bash(powershell *)",
+      "PowerShell(Get-ChildItem -Path . -Directory | ForEach-Object { $_.Name })",
+      "PowerShell(Get-ChildItem -Path \"./glove_firmware\" -Directory | ForEach-Object { $_.Name })",
+      "PowerShell(Get-ChildItem -Path \"./glove_relay\" -Directory | ForEach-Object { $_.Name })",
+      "PowerShell(Get-ChildItem -Path \"./glove_web/src\" -Directory -ErrorAction SilentlyContinue | ForEach-Object { $_.Name })",
+      "PowerShell(Get-ChildItem -Path \"./glove_firmware/src\" -File -ErrorAction SilentlyContinue | ForEach-Object { $_.Name })",
+      "PowerShell(Get-ChildItem -Path \"./glove_relay/src\" -File -ErrorAction SilentlyContinue | ForEach-Object { $_.Name })",
+      "PowerShell(Get-ChildItem -Path \"./docs\" -File -ErrorAction SilentlyContinue | ForEach-Object { $_.Name })",
+      "PowerShell(Get-ChildItem -Path \"./.claude\" -File -ErrorAction SilentlyContinue | ForEach-Object { $_.Name })",
+      "PowerShell(Get-ChildItem -Path \"./glove_firmware/lib\" -Directory -ErrorAction SilentlyContinue | ForEach-Object { $_.Name })",
+      "PowerShell(Get-ChildItem -Path \"./glove_firmware/lib/Sensors\" -File -ErrorAction SilentlyContinue | ForEach-Object { $_.Name })",
+      "PowerShell(Get-ChildItem -Path \"./glove_firmware/lib/Models\" -File -ErrorAction SilentlyContinue | ForEach-Object { $_.Name })",
+      "PowerShell(Get-ChildItem -Path \"./glove_firmware/lib/Comms\" -File -ErrorAction SilentlyContinue | ForEach-Object { $_.Name })",
+      "PowerShell(Get-ChildItem -Path \"./glove_relay/src\" -Directory -ErrorAction SilentlyContinue | ForEach-Object { $_.Name })",
+      "PowerShell(Get-ChildItem -Path \"./glove_web/src/components\" -Directory -ErrorAction SilentlyContinue | ForEach-Object { $_.Name })",
+      "PowerShell(Get-ChildItem -Path \"./glove_web\" -File -ErrorAction SilentlyContinue | Where-Object { $_.Extension -match \"\\\\.ts|\\\\.tsx|\\\\.json|\\\\.html\" } | ForEach-Object { $_.Name })"
     ]
   }
 }

@@ -41,11 +41,19 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ## Build Commands
 
 ### Firmware (glove_firmware)
-```bash
+```powershell
 cd glove_firmware
-pio run                    # Build
-pio run -t upload          # Upload to ESP32-S3
-pio device monitor         # Serial monitor (115200 baud)
+# Build (use PowerShell on Windows — bash produces no output)
+pio run
+
+# Upload to ESP32-S3
+pio run -t upload
+
+# Serial monitor (115200 baud)
+pio device monitor
+
+# Build with debug configuration
+pio run -e esp32-s3-devkitc-1-n16r8_debug
 ```
 
 ### Python Relay (glove_relay)
@@ -61,7 +69,10 @@ cd glove_web
 npm install
 npm run dev                # Dev server http://localhost:5173
 npm run build              # Production build
+npm run preview            # Preview production build
 ```
+
+**Vite Config:** `vite.config.ts` includes path alias `@/` pointing to `src/`
 
 ---
 
@@ -174,11 +185,37 @@ Invoke with `/agent esp32-firmware-engineer` for firmware tasks.
 ## PlatformIO Dependency Notes
 
 - **lib_deps syntax**: Use `owner/libname @ version` (space before @), NOT `owner/libname=@version`
-- **TMAG5273**: Local driver in `lib/Sensors/TMG5273.h/.cpp` — do NOT add SparkFun TMAG5273 library to lib_deps
-- **TFLite Micro**: Use `tanakamasayuki/TensorFlowLite_ESP32` (only ESP32 TFLite in PlatformIO registry)
-- **ESPAsyncUDP**: Use `me-no-dev/ESPAsyncUDP` (mathieucarbou fork not in registry)
+- **TMAG5273**: Local driver in `lib/Sensors/TMG5273.h/.cpp` — do NOT add SparkFun TMAG5273 library to lib_deps (already in lib_deps for reference, but local implementation is used)
+- **TFLite Micro**: Use `tensorflow/tflite-micro-esp32` (ESP32 optimized)
+- **ESPAsyncUDP**: Use `mathieucarbou/ESPAsyncUDP` (note: registry availability may vary)
 - **Build on Windows**: Use PowerShell for `pio run` — bash produces no output on this system
 - **pio path**: `C:\Users\QuenchKidney\.platformio\penv\Scripts\pio.exe`
+
+## Library Architecture
+
+### Firmware (`glove_firmware/lib/`)
+| Directory | Purpose |
+|-----------|---------|
+| `Sensors/` | TMAG5273 driver, TCA9548A mux, SensorManager |
+| `Models/` | BaseModel interface, TFLiteModel, ModelRegistry |
+| `Comms/` | BLEManager, UDPTransmitter, Protobuf |
+| `Filters/` | Kalman filter implementations |
+
+### Relay (`glove_relay/src/`)
+| Module | Purpose |
+|--------|---------|
+| `models/` | ST-GCN L2 inference, ModelRegistry, base_model interface |
+| `nlp/` | CSL→Mandarin grammar correction |
+| `tts/` | edge-tts voice synthesis |
+| `utils/` | Config loading, logging |
+
+### Web (`glove_web/src/`)
+| Directory | Purpose |
+|-----------|---------|
+| `components/Hand3D/` | 21-keypoint hand skeleton (R3F) |
+| `hooks/` | useWebSocket with auto-reconnect |
+| `stores/` | Zustand state management |
+| `types/` | TypeScript type definitions |
 
 ---
 
@@ -186,3 +223,20 @@ Invoke with `/agent esp32-firmware-engineer` for firmware tasks.
 
 - Session continuation `.txt` files appear in `glove_firmware/` root — add `*this-session-is-being-continued*` to `.gitignore`
 - `pio pkg search` crashes with UnicodeEncodeError on Windows — use `Out-File` + `Get-Content` workaround in PowerShell
+- **WebSocket Port**: Relay uses port **8765** for WebSocket (not 8000)
+- **UDP Port**: ESP32 sends to port **8888** (configured in `platformio.ini`)
+- **Relay Host**: Web frontend connects to `ws://${relayHost}:8765` — default is `localhost`
+
+## Testing
+
+### Firmware Tests
+```powershell
+cd glove_firmware
+pio test
+```
+
+### Relay Tests
+```bash
+cd glove_relay
+python -m pytest tests/
+```
