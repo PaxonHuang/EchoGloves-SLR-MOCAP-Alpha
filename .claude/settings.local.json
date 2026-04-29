@@ -18,7 +18,9 @@
       "PowerShell(Get-ChildItem -Path \"./glove_firmware/lib/Comms\" -File -ErrorAction SilentlyContinue | ForEach-Object { $_.Name })",
       "PowerShell(Get-ChildItem -Path \"./glove_relay/src\" -Directory -ErrorAction SilentlyContinue | ForEach-Object { $_.Name })",
       "PowerShell(Get-ChildItem -Path \"./glove_web/src/components\" -Directory -ErrorAction SilentlyContinue | ForEach-Object { $_.Name })",
-      "PowerShell(Get-ChildItem -Path \"./glove_web\" -File -ErrorAction SilentlyContinue | Where-Object { $_.Extension -match \"\\\\.ts|\\\\.tsx|\\\\.json|\\\\.html\" } | ForEach-Object { $_.Name })"
+      "PowerShell(Get-ChildItem -Path \"./glove_web\" -File -ErrorAction SilentlyContinue | Where-Object { $_.Extension -match \"\\\\.ts|\\\\.tsx|\\\\.json|\\\\.html\" } | ForEach-Object { $_.Name })",
+      "PowerShell(Get-ChildItem -Path \"H:/HandSignRecognition/Alpha/Hall-BNO085-PlatformIOArduino/glove_firmware\" -Directory | ForEach-Object { \"Directory: $\\($_.Name\\)\" })",
+      "PowerShell(Get-ChildItem -Path \"H:/HandSignRecognition/Alpha/Hall-BNO085-PlatformIOArduino/glove_firmware/lib\" -Directory | ForEach-Object { \"  $\\($_.Name\\)/\" })"
     ]
   }
 }
