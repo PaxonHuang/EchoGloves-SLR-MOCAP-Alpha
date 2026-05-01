@@ -20,7 +20,15 @@
       "PowerShell(Get-ChildItem -Path \"./glove_web/src/components\" -Directory -ErrorAction SilentlyContinue | ForEach-Object { $_.Name })",
       "PowerShell(Get-ChildItem -Path \"./glove_web\" -File -ErrorAction SilentlyContinue | Where-Object { $_.Extension -match \"\\\\.ts|\\\\.tsx|\\\\.json|\\\\.html\" } | ForEach-Object { $_.Name })",
       "PowerShell(Get-ChildItem -Path \"H:/HandSignRecognition/Alpha/Hall-BNO085-PlatformIOArduino/glove_firmware\" -Directory | ForEach-Object { \"Directory: $\\($_.Name\\)\" })",
-      "PowerShell(Get-ChildItem -Path \"H:/HandSignRecognition/Alpha/Hall-BNO085-PlatformIOArduino/glove_firmware/lib\" -Directory | ForEach-Object { \"  $\\($_.Name\\)/\" })"
+      "PowerShell(Get-ChildItem -Path \"H:/HandSignRecognition/Alpha/Hall-BNO085-PlatformIOArduino/glove_firmware/lib\" -Directory | ForEach-Object { \"  $\\($_.Name\\)/\" })",
+      "Bash(git *)",
+      "PowerShell(Get-ChildItem -Path \"H:\\\\HandSignRecognition\\\\Alpha\\\\Hall-BNO085-PlatformIOArduino\\\\glove_firmware\\\\lib\" -Directory | ForEach-Object { $_.Name })",
+      "PowerShell(Get-ChildItem -Path \"H:\\\\HandSignRecognition\\\\Alpha\\\\Hall-BNO085-PlatformIOArduino\\\\glove_firmware\\\\src\" -File | ForEach-Object { $_.Name })",
+      "PowerShell(git *)",
+      "PowerShell(Get-ChildItem -Path \"H:\\\\HandSignRecognition\\\\Alpha\\\\Hall-BNO085-PlatformIOArduino\\\\glove_firmware\\\\lib\\\\Comms\" -File | ForEach-Object { $_.Name })",
+      "PowerShell(Get-ChildItem -Path \"H:\\\\HandSignRecognition\\\\Alpha\\\\Hall-BNO085-PlatformIOArduino\\\\glove_firmware\\\\lib\\\\Filters\" -File | ForEach-Object { $_.Name })",
+      "PowerShell(Get-ChildItem -Path \"H:\\\\HandSignRecognition\\\\Alpha\\\\Hall-BNO085-PlatformIOArduino\\\\glove_firmware\\\\lib\\\\Models\" -File | ForEach-Object { $_.Name })",
+      "PowerShell(Get-ChildItem -Path \"H:\\\\HandSignRecognition\\\\Alpha\\\\Hall-BNO085-PlatformIOArduino\\\\glove_firmware\\\\lib\\\\Sensors\" -File | ForEach-Object { $_.Name })"
     ]
   }
 }
