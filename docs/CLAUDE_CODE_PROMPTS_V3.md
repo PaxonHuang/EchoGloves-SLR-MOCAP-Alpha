@@ -93,7 +93,7 @@
 
 **🎯 预期输出：**
 
-- platformio.ini 配置文件，包含完整的 ESP32-S3 N16R8 PSRAM 配置
+- platformio.ini 配置文件，包含了完整的 ESP32-S3 N16R8 PSRAM 配置
 - 完整的目录结构，所有 lib/ 子目录已创建
 - 编译输出 0 errors, 0 warnings（或仅有已知可忽略的 warning）
 
