@@ -4,8 +4,8 @@
  *
  * This directory contains:
  * - KalmanFilter1D: 1D Kalman filter for sensor noise reduction
- * - MovingAverage: Simple moving average filter
- * - LowPassFilter: Exponential moving average (EMA) filter
+ * - SlidingWindow:  Ring buffer for 30-frame inference input
+ * - FeatureNormalizer: Min-Max normalization for model input
  */
 
 #ifndef FILTERS_H

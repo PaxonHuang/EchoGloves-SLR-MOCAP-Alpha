@@ -4,6 +4,18 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ---
 
+## Workflow Rule: Execute First, Explore Second
+
+When I provide detailed specs or explicit instructions for project initialization or implementation, start executing immediately. Only read/explore files if specs are ambiguous or missing critical information. Do not spend multiple rounds exploring existing structure before acting on clear instructions.
+
+---
+
+## Project Context
+
+This is an ESP32-S3 hand sign recognition glove project using PlatformIO. Key components: BNO085 IMU, TMAG5273 hall effect sensors. Architecture follows a phased HAL/driver development approach (Phase 1: HAL + basic drivers, Phase 2: signal processing, Phase 3: gesture recognition). When continuing work, check previous session progress before restarting from scratch.
+
+---
+
 ## Project Overview
 
 **Edge-AI Data Glove V3**: Dual-tier inference system for real-time sign language translation and 3D hand animation. 
@@ -182,6 +194,19 @@ Invoke with `/agent esp32-firmware-engineer` for firmware tasks.
 
 ---
 
+## Project Dependencies
+
+- TMAG5273 and BNO085 drivers are LOCAL drivers included in the firmware repo, NOT PlatformIO registry libraries. Do not search PlatformIO registry for them.
+- For any dependency, check the project's existing `lib/` directory first before assuming it needs to be installed from a registry.
+
+---
+
+## Build Verification
+
+After modifying any source file in this project, always run `pio run` to verify the build compiles successfully. Do not consider a task complete until a clean build is confirmed.
+
+---
+
 ## PlatformIO Dependency Notes
 
 - **lib_deps syntax**: Use `owner/libname @ version` (space before @), NOT `owner/libname=@version`
@@ -216,6 +241,26 @@ Invoke with `/agent esp32-firmware-engineer` for firmware tasks.
 | `hooks/` | useWebSocket with auto-reconnect |
 | `stores/` | Zustand state management |
 | `types/` | TypeScript type definitions |
+
+---
+
+## MCP Plugins
+
+| Plugin | Status | Usage |
+|--------|--------|-------|
+| Playwright | Working | Browser automation, web testing |
+| Chrome DevTools | Working | Page inspection, performance profiling |
+| GitHub MCP | Working (after restart) | PRs, issues, code search — needs `GITHUB_PERSONAL_ACCESS_TOKEN` in `.claude/settings.local.json` |
+| Context7 | Intermittent | Library docs lookup — may fail due to proxy routing |
+| Espressif Docs | Intermittent | ESP-IDF docs — may fail due to proxy routing |
+
+Context7 and Espressif Docs failures are proxy-related (`127.0.0.1:15721`), not configuration issues. They may work intermittently.
+
+---
+
+## Session Continuation
+
+**Read `PROGRESS.md` first** when starting a new session. It tracks cross-session state, completed checkpoints, and MCP status. Continue from the last checkpoint — do not re-explore or re-plan what's already done. Update `PROGRESS.md` when you finish a task.
 
 ---
 

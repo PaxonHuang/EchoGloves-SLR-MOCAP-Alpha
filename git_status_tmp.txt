@@ -1,0 +1,2 @@
+bash: git: command not found
+bash: git: command not found

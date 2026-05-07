@@ -6,13 +6,15 @@
  *   Core 1 (Protocol CPU):
  *     └─ Task_SensorRead  (Priority 3, 100 Hz)
  *        - Reads all sensors via I2C (TCA9548A mux + 5× TMAG5273 + BNO085)
- *        - Applies Kalman filtering
- *        - Pushes FullDataPacket → dataQueue
- *        - Fills sliding window ring buffer
+ *        - Kalman filtering is done inside SensorManager.readAll()
+ *        - Normalizes features via FeatureNormalizer
+ *        - Pushes normalized features into SlidingWindow ring buffer
+ *        - Sends SensorData to FreeRTOS data queue
+ *        - Outputs CSV via serial (for Edge Impulse data forwarder)
  *
  *   Core 0 (Application CPU):
  *     ├─ Task_Inference   (Priority 2, ~30 Hz)
- *     │  - Pops WINDOW_SIZE frames from ring buffer
+ *     │  - Collects WINDOW_SIZE frames from SlidingWindow
  *     │  - Runs L1 inference via ModelRegistry
  *     │  - Pushes InferenceResult → inferenceQueue
  *     │
@@ -27,7 +29,7 @@
  *   TaskHandle_t variable name as the function pointer:
  *
  *     WRONG: xTaskCreatePinnedToCore(TaskSensorReadHandle, "SensorRead", ...)
- *            ^^^^^^^^^^^^^^^^^^ This is a TaskHandle_t, NOT a function pointer!
+ *            ^^^^^^^^^^^^^^ This is a TaskHandle_t, NOT a function pointer!
  *            → Crash at boot or undefined behavior
  *
  *   V3 uses the CORRECT order with static_assert validation:
@@ -37,6 +39,10 @@
  *               ^^^^^^^^^^^^^^ This is a TaskFunction_t (void (*)(void*))
  *
  *   Parameter order: (function_ptr, name, stack_size, param, priority, handle_ptr, core_id)
+ *
+ * Signal Processing Pipeline (Phase 2):
+ *   SensorData → toFeatureArray() → FeatureNormalizer.updateStats/normalize()
+ *               → SlidingWindow.push() → [ready for inference when isFull()]
  *
  * Build: pio run -e esp32-s3-devkitc-1-n16r8
  * Monitor: pio device monitor
@@ -49,7 +55,6 @@
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 #include "freertos/queue.h"
-#include "freertos/semphr.h"
 
 // ---- ESP-IDF Headers ----
 #include "esp_timer.h"
@@ -66,6 +71,10 @@
 #include "SensorManager.h"
 #include "FlexManager.h"
 
+// ---- Signal Processing Libraries ----
+#include "SlidingWindow.h"
+#include "FeatureNormalizer.h"
+
 // ---- Communication Libraries ----
 // #include "lib/Comms/BLEManager.h"
 // #include "lib/Comms/UDPTransmitter.h"
@@ -77,11 +86,17 @@
 // Global Objects
 // =============================================================================
 
-/// Unified sensor manager (I2C bus, mux, Hall sensors, IMU)
+/// Unified sensor manager (I2C bus, mux, Hall sensors, IMU, Kalman filters)
 static SensorManager g_sensor_manager;
 
 /// Flex sensor manager (ADC, currently placeholder)
 static FlexManager g_flex_manager;
+
+/// Sliding window ring buffer (30 frames × 21 features, allocated in PSRAM)
+static SlidingWindow g_sliding_window;
+
+/// Feature normalizer (Min-Max, 2-second calibration then normalize)
+static FeatureNormalizer g_normalizer;
 
 /// BLE provisioning + data notification manager
 // static BLEManager g_ble_manager;
@@ -122,7 +137,6 @@ void Task_Comms(void* pvParameters);
 // Static Asserts (compile-time verification of function pointers)
 // =============================================================================
 
-// Validate that task functions match TaskFunction_t signature
 static_assert(std::is_same<decltype(&Task_SensorRead), TaskFunction_t>::value,
               "Task_SensorRead must have signature void(void*)");
 static_assert(std::is_same<decltype(&Task_Inference), TaskFunction_t>::value,
@@ -131,17 +145,27 @@ static_assert(std::is_same<decltype(&Task_Comms), TaskFunction_t>::value,
               "Task_Comms must have signature void(void*)");
 
 // =============================================================================
+// Calibration Constants
+// =============================================================================
+
+/// Calibration duration in frames (2 seconds @ 100Hz)
+static constexpr uint32_t CALIBRATION_FRAMES = 200;
+
+/// Serial CSV output period (every N frames, for Edge Impulse data forwarder)
+static constexpr uint32_t CSV_OUTPUT_PERIOD = 1;  // Every frame for data collection
+
+// =============================================================================
 // Setup
 // =============================================================================
 
 void setup() {
-    // Initialize serial for debugging
     Serial.begin(115200);
-    delay(1000);  // Allow serial to stabilize
+    delay(1000);
 
     Serial.println("\n========================================");
     Serial.println("EdgeAI Data Glove V3");
     Serial.println("ESP32-S3-DevKitC-1 N16R8");
+    Serial.println("Phase 1+2: HAL + Signal Processing");
     Serial.println("========================================\n");
 
     // Check PSRAM availability
@@ -155,6 +179,10 @@ void setup() {
         Serial.println("WARNING: PSRAM not found!");
     }
 
+    // Initialize feature normalizer (starts in calibration mode)
+    g_normalizer.reset();
+    Serial.println("[setup] Feature normalizer initialized (calibration mode)");
+
     // Create queues
     g_data_queue = xQueueCreate(10, sizeof(SensorData));
     g_inference_queue = xQueueCreate(10, sizeof(InferenceResult));
@@ -164,34 +192,28 @@ void setup() {
         return;
     }
 
-    // Initialize components (to be implemented)
-    // g_sensor_manager.init();
-    // g_ble_manager.init();
-    // g_udp_transmitter.init();
-    // g_model_registry.init();
-
     // Create FreeRTOS tasks (pinned to specific cores)
 
     // Task_SensorRead: Core 1, Priority 3, 100Hz
     xTaskCreatePinnedToCore(
-        Task_SensorRead,        // Function pointer (CORRECT!)
-        "SensorRead",           // Task name
-        10000,                  // Stack size (bytes)
-        nullptr,                // Parameter
-        3,                      // Priority
-        &TaskSensorReadHandle,  // Task handle
-        1                       // Core ID (1 = Protocol CPU)
+        Task_SensorRead,
+        "SensorRead",
+        10000,
+        nullptr,
+        3,
+        &TaskSensorReadHandle,
+        1
     );
 
     // Task_Inference: Core 0, Priority 2, ~30Hz
     xTaskCreatePinnedToCore(
         Task_Inference,
         "Inference",
-        16384,                  // Larger stack for ML inference
+        16384,
         nullptr,
         2,
         &TaskInferenceHandle,
-        0                       // Core ID (0 = Application CPU)
+        0
     );
 
     // Task_Comms: Core 0, Priority 1, 100Hz send / 20Hz BLE
@@ -214,50 +236,135 @@ void setup() {
 // =============================================================================
 
 void loop() {
-    // All processing happens in FreeRTOS tasks
-    // This loop can be used for idle processing or watchdog
     vTaskDelay(pdMS_TO_TICKS(1000));
 }
 
 // =============================================================================
-// Task Implementations
+// Task_SensorRead — Full signal processing pipeline
 // =============================================================================
 
 void Task_SensorRead(void* pvParameters) {
     Serial.println("[Task_SensorRead] Started on Core 1");
 
+    // Initialize sensors (SensorManager handles I2C, mux, Hall, IMU, Kalman)
+    if (!g_sensor_manager.begin()) {
+        Serial.println("[Task_SensorRead] FATAL: Sensor init failed!");
+        while (true) vTaskDelay(pdMS_TO_TICKS(1000));
+    }
+
+    // Initialize flex sensor manager (placeholder, returns zeros)
+    g_flex_manager.begin();
+
     TickType_t xLastWakeTime = xTaskGetTickCount();
     const TickType_t xFrequency = pdMS_TO_TICKS(10);  // 100 Hz
 
-    while (true) {
-        // TODO: Read sensors via I2C mux
-        // TODO: Apply Kalman filtering
-        // TODO: Push to data queue
+    uint32_t frame_count = 0;
+    uint32_t calibration_count = 0;
+    bool calibration_complete = false;
 
+    Serial.println("[Task_SensorRead] Calibration: collecting stats for 2 seconds...");
+
+    while (true) {
+        SensorData data;
+        data.seq = frame_count;
+
+        // ---- Step 1: Read all sensors (Kalman filtering is done inside) ----
+        if (!g_sensor_manager.readAll(data)) {
+            frame_count++;
+            vTaskDelayUntil(&xLastWakeTime, xFrequency);
+            continue;
+        }
+
+        // ---- Step 2: Read flex sensors (placeholder: zeros) ----
+        g_flex_manager.readAll(data.flex);
+
+        // ---- Step 3: Extract 21-dim feature vector ----
+        float features[FEATURE_COUNT];
+        data.toFeatureArray(features);
+
+        // ---- Step 4: Calibration phase (first 2 seconds) ----
+        if (!calibration_complete) {
+            g_normalizer.updateStats(features);
+            calibration_count++;
+
+            if (calibration_count >= CALIBRATION_FRAMES) {
+                calibration_complete = true;
+                Serial.println("[Task_SensorRead] Calibration complete. Feature ranges:");
+                for (uint8_t i = 0; i < FEATURE_COUNT; i++) {
+                    Serial.printf("  [%2d] min=%8.3f max=%8.3f range=%8.3f\n",
+                                 i, g_normalizer.getMin(i),
+                                 g_normalizer.getMax(i), g_normalizer.getRange(i));
+                }
+            }
+        }
+
+        // ---- Step 5: Normalize features to [0, 1] ----
+        if (calibration_complete) {
+            g_normalizer.normalize(features);
+        }
+
+        // ---- Step 6: Push normalized features into SlidingWindow ----
+        g_sliding_window.push(features);
+
+        // ---- Step 7: Send SensorData to FreeRTOS queue ----
+        if (xQueueSend(g_data_queue, &data, 0) != pdPASS) {
+            Serial.printf("[Task_SensorRead] Queue full, dropped frame %lu\n", frame_count);
+        }
+
+        // ---- Step 8: Serial CSV output (for Edge Impulse data forwarder) ----
+        // Format: timestamp, hall0x, hall0y, hall0z, ..., hall4z, roll, pitch, yaw, gx, gy, gz
+        if (frame_count % CSV_OUTPUT_PERIOD == 0 && calibration_complete) {
+            Serial.printf("%lu", data.timestamp_us);
+            for (uint8_t i = 0; i < HALL_FEATURE_COUNT; i++) {
+                Serial.printf(",%.4f", data.hall_xyz[i]);
+            }
+            Serial.printf(",%.2f,%.2f,%.2f", data.euler[0], data.euler[1], data.euler[2]);
+            Serial.printf(",%.2f,%.2f,%.2f", data.gyro[0], data.gyro[1], data.gyro[2]);
+            Serial.println();
+        }
+
+        // ---- Step 9: Debug output (every 100 frames) ----
+        if (frame_count % 100 == 0) {
+            Serial.printf("[Task_SensorRead] Frame %lu | Window: %d/%d | "
+                         "Free heap: %lu | Cal: %s\n",
+                         frame_count, g_sliding_window.getFrameCount(), WINDOW_SIZE,
+                         ESP.getFreeHeap(),
+                         calibration_complete ? "DONE" : "RUNNING");
+        }
+
+        frame_count++;
         vTaskDelayUntil(&xLastWakeTime, xFrequency);
     }
 }
 
+// =============================================================================
+// Task_Inference — Placeholder (Phase 3 will implement L1 inference)
+// =============================================================================
+
 void Task_Inference(void* pvParameters) {
-    Serial.println("[Task_Inference] Started on Core 0");
+    Serial.println("[Task_Inference] Started on Core 0 (placeholder)");
 
     while (true) {
-        // TODO: Collect WINDOW_SIZE frames from ring buffer
-        // TODO: Run L1 inference via ModelRegistry
-        // TODO: Push result to inference queue
+        // Wait for SlidingWindow to be full before attempting inference
+        if (g_sliding_window.isFull()) {
+            // Phase 3: Will run TFLite Micro inference here
+            // const float* inference_input = g_sliding_window.getBuffer();
+            // g_model_registry.infer(inference_input, ...);
+        }
 
         vTaskDelay(pdMS_TO_TICKS(33));  // ~30 Hz
     }
 }
 
+// =============================================================================
+// Task_Comms — Placeholder (Phase 4 will implement BLE/UDP)
+// =============================================================================
+
 void Task_Comms(void* pvParameters) {
-    Serial.println("[Task_Comms] Started on Core 0");
+    Serial.println("[Task_Comms] Started on Core 0 (placeholder)");
 
     while (true) {
-        // TODO: Check for BLE provisioning state
-        // TODO: Send data over UDP (100 Hz)
-        // TODO: Handle incoming commands
-
-        vTaskDelay(pdMS_TO_TICKS(10));  // 100 Hz
+        // Phase 4: Will implement BLE provisioning + UDP telemetry here
+        vTaskDelay(pdMS_TO_TICKS(10));
     }
 }

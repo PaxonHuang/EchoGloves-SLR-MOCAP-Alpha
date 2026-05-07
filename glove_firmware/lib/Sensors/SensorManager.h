@@ -39,8 +39,8 @@ public:
     // =========================================================================
 
     SensorManager()
-        : _mux(TCA9548A_DEFAULT_ADDR, &Wire),
-          _initialized(false), _seq(0),
+        : _mux(TCA9548A::DEFAULT_ADDR, &Wire),
+          _initialized(false), _imu_ok(false), _seq(0),
           _imu(&Wire, 0x4A) {
 
         // Create TMAG5273 instances, one per mux channel
@@ -217,9 +217,11 @@ private:
             return false;
         }
 
-        // Enable rotation vector report (quaternion) at 100 Hz
-        if (!_imu.enableReport(SH2_ROTATION_VECTOR, 10000)) {  // 10 ms = 100 Hz
-            Serial.println("[SensorManager] BNO085: failed to enable rotation vector");
+        // Enable Game Rotation Vector report (quaternion, no geomagnetic)
+        // at 100 Hz — SOP spec §4.2 requires this over SH2_ROTATION_VECTOR
+        // to avoid magnetic interference in wrist-mounted IMU
+        if (!_imu.enableReport(SH2_GAME_ROTATION_VECTOR, 10000)) {  // 10 ms = 100 Hz
+            Serial.println("[SensorManager] BNO085: failed to enable game rotation vector");
             _mux.disableAll();
             return false;
         }
@@ -235,7 +237,7 @@ private:
         uint32_t t0 = millis();
         while (!_quat_report_received && (millis() - t0) < 500) {
             _imu.getSensorEvent(&_sensor_value);
-            if (_sensor_value.type == SH2_ROTATION_VECTOR) {
+            if (_sensor_value.type == SH2_GAME_ROTATION_VECTOR) {
                 _quat_report_received = true;
             }
             delay(1);
@@ -270,12 +272,12 @@ private:
             }
 
             switch (_sensor_value.type) {
-                case SH2_ROTATION_VECTOR: {
-                    // Quaternion: w, x, y, z (normalized by BNO085)
-                    float q_w = _sensor_value.un.rotation_vector.real;
-                    float q_x = _sensor_value.un.rotation_vector.i;
-                    float q_y = _sensor_value.un.rotation_vector.j;
-                    float q_z = _sensor_value.un.rotation_vector.k;
+                case SH2_GAME_ROTATION_VECTOR: {
+                    // Quaternion: w, x, y, z (normalized by BNO085, no magnetic)
+                    float q_w = _sensor_value.un.gameRotationVector.real;
+                    float q_x = _sensor_value.un.gameRotationVector.i;
+                    float q_y = _sensor_value.un.gameRotationVector.j;
+                    float q_z = _sensor_value.un.gameRotationVector.k;
 
                     // Store quaternion (Kalman filtered — though quaternion
                     // is already fused internally by BNO085 SH-2 sensor hub)

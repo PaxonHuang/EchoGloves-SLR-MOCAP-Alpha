@@ -1,4 +1,6 @@
 {
+  "env": {
+  },
   "permissions": {
     "allow": [
       "Bash(dir /s /b /a-d)",
@@ -28,7 +30,19 @@
       "PowerShell(Get-ChildItem -Path \"H:\\\\HandSignRecognition\\\\Alpha\\\\Hall-BNO085-PlatformIOArduino\\\\glove_firmware\\\\lib\\\\Comms\" -File | ForEach-Object { $_.Name })",
       "PowerShell(Get-ChildItem -Path \"H:\\\\HandSignRecognition\\\\Alpha\\\\Hall-BNO085-PlatformIOArduino\\\\glove_firmware\\\\lib\\\\Filters\" -File | ForEach-Object { $_.Name })",
       "PowerShell(Get-ChildItem -Path \"H:\\\\HandSignRecognition\\\\Alpha\\\\Hall-BNO085-PlatformIOArduino\\\\glove_firmware\\\\lib\\\\Models\" -File | ForEach-Object { $_.Name })",
-      "PowerShell(Get-ChildItem -Path \"H:\\\\HandSignRecognition\\\\Alpha\\\\Hall-BNO085-PlatformIOArduino\\\\glove_firmware\\\\lib\\\\Sensors\" -File | ForEach-Object { $_.Name })"
+      "PowerShell(Get-ChildItem -Path \"H:\\\\HandSignRecognition\\\\Alpha\\\\Hall-BNO085-PlatformIOArduino\\\\glove_firmware\\\\lib\\\\Sensors\" -File | ForEach-Object { $_.Name })",
+      "Bash(mcp__github__search_repositories --query \"HandSignRecognition\" --perPage 3)",
+      "mcp__github__search_repositories",
+      "mcp__context7__resolve-library-id",
+      "mcp__espressif-docs__search_espressif_sources",
+      "mcp__plugin_playwright_playwright__browser_tabs",
+      "mcp__plugin_chrome-devtools-mcp_chrome-devtools__list_pages",
+      "Bash(dir *)",
+      "Bash(powershell.exe *)",
+      "Skill(update-config)",
+      "Bash(\"C:\\\\Users\\\\QuenchKidney\\\\.platformio\\\\penv\\\\Scripts\\\\pio.exe\" run *)",
+      "Bash(C:\\\\Users\\\\QuenchKidney\\\\.platformio\\\\penv\\\\Scripts\\\\pio.exe run *)",
+      "Bash(echo \"EXIT_CODE=$?\")"
     ]
   }
 }
