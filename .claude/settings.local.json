@@ -1,6 +1,5 @@
 {
-  "env": {
-  },
+  "env": {},
   "permissions": {
     "allow": [
       "Bash(dir /s /b /a-d)",
@@ -42,7 +41,8 @@
       "Skill(update-config)",
       "Bash(\"C:\\\\Users\\\\QuenchKidney\\\\.platformio\\\\penv\\\\Scripts\\\\pio.exe\" run *)",
       "Bash(C:\\\\Users\\\\QuenchKidney\\\\.platformio\\\\penv\\\\Scripts\\\\pio.exe run *)",
-      "Bash(echo \"EXIT_CODE=$?\")"
+      "Bash(echo \"EXIT_CODE=$?\")",
+      "Bash(cmd *)"
     ]
   }
 }

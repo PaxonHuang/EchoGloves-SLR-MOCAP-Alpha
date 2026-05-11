@@ -2,6 +2,8 @@
 
 **Edge-AI-Powered Data Glove with Dual-Tier Inference for Real-Time Sign Language Translation and 3D Hand Animation Rendering**
 
+![1778514913749](image/README/1778514913749.jpg)
+
 ---
 
 ## Project Overview
@@ -69,22 +71,23 @@ npm run build              # Production build
 
 ## Key Design Decisions (V3)
 
-| Decision | Choice | Reason |
-|----------|--------|--------|
-| D1: Frontend | React + R3F | Remove Tauri/Rust, pure Web zero-install |
-| D2: Relay | FastAPI + WebSocket | Unified Python hub for relay + L2 + TTS + NLP |
-| D3: Rendering | React MVP → Unity Pro | Two-stage progressive evolution |
-| D4: Mobile | Responsive Web + PWA | "Add to Home Screen" for native-like experience |
-| D5: BLE | Provisioning only | No Web Bluetooth API (unstable) |
-| D6: L1 Models | 1D-CNN+Attention + MS-TCN | Model pool with hot-switch support |
-| D7: Model Switch | BaseModel + YAML | Runtime switching without restart |
-| D8: Benchmark | Top-1/5 + FLOPs + latency | Data-driven model selection |
+| Decision         | Choice                    | Reason                                          |
+| ---------------- | ------------------------- | ----------------------------------------------- |
+| D1: Frontend     | React + R3F               | Remove Tauri/Rust, pure Web zero-install        |
+| D2: Relay        | FastAPI + WebSocket       | Unified Python hub for relay + L2 + TTS + NLP   |
+| D3: Rendering    | React MVP → Unity Pro    | Two-stage progressive evolution                 |
+| D4: Mobile       | Responsive Web + PWA      | "Add to Home Screen" for native-like experience |
+| D5: BLE          | Provisioning only         | No Web Bluetooth API (unstable)                 |
+| D6: L1 Models    | 1D-CNN+Attention + MS-TCN | Model pool with hot-switch support              |
+| D7: Model Switch | BaseModel + YAML          | Runtime switching without restart               |
+| D8: Benchmark    | Top-1/5 + FLOPs + latency | Data-driven model selection                     |
 
 ---
 
 ## Key Components
 
 ### glove_firmware (ESP32-S3)
+
 - FreeRTOS dual-core task scheduling (Core 1: 100Hz sampling, Core 0: inference + comms)
 - TCA9548A I2C multiplexer driver (5 channel switching)
 - TMAG5273 3D Hall sensor driver (12-bit, ±40mT)
@@ -94,6 +97,7 @@ npm run build              # Production build
 - Nanopb Protobuf serialization
 
 ### glove_relay (Python)
+
 - FastAPI + WebSocket server (port 8765)
 - asyncio UDP receiver (port 8888)
 - Protobuf → JSON conversion
@@ -102,6 +106,7 @@ npm run build              # Production build
 - edge-tts voice synthesis
 
 ### glove_web (React)
+
 - React 18 + Vite + TailwindCSS
 - React Three Fiber (R3F) for 3D rendering
 - Zustand state management
@@ -112,14 +117,14 @@ npm run build              # Production build
 
 ## Performance Targets
 
-| Metric | Target |
-|--------|--------|
-| L1 inference latency | <3ms |
-| L2 inference latency | <20ms |
-| End-to-end latency | <100ms |
+| Metric                   | Target     |
+| ------------------------ | ---------- |
+| L1 inference latency     | <3ms       |
+| L2 inference latency     | <20ms      |
+| End-to-end latency       | <100ms     |
 | L1 accuracy (46 classes) | >90% Top-1 |
 | L2 accuracy (46 classes) | >95% Top-1 |
-| Sensor sampling rate | 100Hz |
+| Sensor sampling rate     | 100Hz      |
 
 ---
 
