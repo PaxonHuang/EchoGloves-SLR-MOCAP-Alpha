@@ -146,10 +146,8 @@ public:
 
         // ---- Step 3: Build interpreter ----
         static tflite::AllOpsResolver resolver;
-        static tflite::MicroInterpreter static_interpreter(_model, resolver,
-                                                           _tensor_arena, _arena_size);
-
-        _interpreter = &static_interpreter;
+        _interpreter = new tflite::MicroInterpreter(_model, resolver,
+                                                     _tensor_arena, _arena_size);
 
         // ---- Step 4: Allocate tensors ----
         TfLiteStatus alloc_status = _interpreter->AllocateTensors();
@@ -201,7 +199,10 @@ public:
      */
     void cleanup() override {
         _ready = false;
-        _interpreter = nullptr;  // Static interpreter, no delete needed
+        if (_interpreter) {
+            delete _interpreter;
+            _interpreter = nullptr;
+        }
         _input_buffer = nullptr;
         _output_buffer = nullptr;
 

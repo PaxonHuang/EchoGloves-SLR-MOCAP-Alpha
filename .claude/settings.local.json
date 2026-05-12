@@ -42,7 +42,15 @@
       "Bash(\"C:\\\\Users\\\\QuenchKidney\\\\.platformio\\\\penv\\\\Scripts\\\\pio.exe\" run *)",
       "Bash(C:\\\\Users\\\\QuenchKidney\\\\.platformio\\\\penv\\\\Scripts\\\\pio.exe run *)",
       "Bash(echo \"EXIT_CODE=$?\")",
-      "Bash(cmd *)"
+      "Bash(cmd *)",
+      "Bash(Get-ChildItem -Path \"H:\\\\HandSignRecognition\\\\Alpha\\\\Hall-BNO085-PlatformIOArduino\" -Recurse -Force)",
+      "Bash(Select-Object FullName, Length, LastWriteTime, PSIsContainer)",
+      "Bash(Sort-Object FullName)",
+      "Bash(Format-Table -AutoSize -Wrap)",
+      "Bash(findstr /V \".pio\")",
+      "Bash(findstr /V \".git\\\\\\\\\")",
+      "Bash(findstr /V \"node_modules\")",
+      "Bash(cmd.exe /c \"dir /s /b H:\\\\HandSignRecognition\\\\Alpha\\\\Hall-BNO085-PlatformIOArduino\")"
     ]
   }
 }

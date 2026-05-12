@@ -31,12 +31,15 @@ static constexpr uint8_t NUM_FLEX_SENSORS = 5;
 /// Hall sensor features per frame: 5 sensors × 3 axes = 15
 static constexpr uint8_t HALL_FEATURE_COUNT = NUM_HALL_SENSORS * 3;  // 15
 
-/// IMU features stored in sensor data: 4 quaternion + 3 gyro = 7
-/// (BNO085 quaternion is already fused; euler is derived, not stored in KF)
+/// IMU Kalman-filtered signal count: 4 quaternion + 3 gyro = 7 channels
+/// NOT the model feature count — quaternion is used for internal state/filtering only.
+/// Model input uses 6 IMU features (3 euler + 3 gyro), NOT the raw quaternion.
+/// Euler angles are derived from quaternion inside SensorManager::readIMU().
 static constexpr uint8_t IMU_FEATURE_COUNT = 7;
 
-/// Total model input features per frame: 15 hall + 6 IMU (euler + gyro)
-/// Quaternion is filtered internally but NOT part of the model feature vector
+/// Model input features per frame: 15 hall + 3 euler + 3 gyro = 21
+/// Deliberately HALL_FEATURE_COUNT + 6, NOT + IMU_FEATURE_COUNT.
+/// Quaternion is filtered internally but excluded from the model feature vector.
 static constexpr uint16_t FEATURE_COUNT = HALL_FEATURE_COUNT + 6;  // 21
 
 /// Number of gesture classes (Chinese Sign Language vocabulary)
